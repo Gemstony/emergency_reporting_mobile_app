@@ -55,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  
+
                   // Reg No Field
                   TextField(
                     controller: _regNoController,
@@ -76,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Password Field
                   TextField(
                     controller: _passwordController,
@@ -109,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // Remember Me & Forgot Password
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -148,9 +148,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 30),
-                  
+
                   // Login Button
                   SizedBox(
                     width: double.infinity,
@@ -161,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           : () async {
                               String regNo = _regNoController.text.trim();
                               String password = _passwordController.text.trim();
-                              
+
                               if (regNo.isEmpty || password.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
@@ -171,23 +171,40 @@ class _LoginScreenState extends State<LoginScreen> {
                                 );
                                 return;
                               }
-                              
-                              bool success = await authProvider.login(regNo, password);
-                              
+
+                              bool success =
+                                  await authProvider.login(regNo, password);
+
                               if (success) {
-                                String role = SessionManager.getRole() ?? '';
-                                
+                                // 👇 Use provider's currentUser instead of SessionManager
+                                String role =
+                                    authProvider.currentUser?.role ?? '';
+                                print('🔑 Logged in as: $role'); // Debug
+
                                 if (role == AppConstants.roleAdmin) {
-                                  Navigator.pushReplacementNamed(context, '/admin-dash');
+                                  Navigator.pushReplacementNamed(
+                                      context, '/admin-dash');
                                 } else if (role == AppConstants.roleStudent) {
-                                  Navigator.pushReplacementNamed(context, '/student-dash');
+                                  Navigator.pushReplacementNamed(
+                                      context, '/student-dash');
                                 } else if (role == AppConstants.roleStaff) {
-                                  Navigator.pushReplacementNamed(context, '/staff-dash');
+                                  Navigator.pushReplacementNamed(
+                                      context, '/staff-dash');
+                                } else {
+                                  // Fallback – should not happen
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Unknown user role. Please contact support.'),
+                                      backgroundColor: AppConstants.errorColor,
+                                    ),
+                                  );
                                 }
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text(authProvider.error ?? 'An error occurred'),
+                                    content: Text(authProvider.error ??
+                                        'An error occurred'),
                                     backgroundColor: AppConstants.errorColor,
                                   ),
                                 );
@@ -206,7 +223,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               height: 24,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
                           : const Text(
@@ -219,9 +237,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   Center(
                     child: Text(
                       '© ${DateTime.now().year} NIT Emergency Report System',

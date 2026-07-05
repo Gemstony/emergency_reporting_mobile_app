@@ -25,7 +25,7 @@ class AppConstants {
   static const double fontSizeTitle = 20;
   
   // Firebase Collections
-  static const String usersCollection = 'users';
+  static const String usersCollection = 'user';
   static const String departmentsCollection = 'departments';
   static const String coursesCollection = 'courses';
   static const String reportsCollection = 'reports';

@@ -54,10 +54,8 @@ class UserModel {
       departmentId: data['departmentId'],
       courseId: data['courseId'],
       yearRegistered: data['yearRegistered'] ?? 0,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: data['updatedAt'] != null 
-          ? (data['updatedAt'] as Timestamp).toDate() 
-          : null,
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -109,10 +107,8 @@ class DepartmentModel {
       name: data['name'] ?? '',
       description: data['description'] ?? '',
       status: data['status'] ?? AppConstants.statusActive,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: data['updatedAt'] != null 
-          ? (data['updatedAt'] as Timestamp).toDate() 
-          : null,
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -160,10 +156,8 @@ class CourseModel {
       departmentId: data['departmentId'] ?? '',
       duration: data['duration'] ?? 0,
       status: data['status'] ?? AppConstants.statusActive,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: data['updatedAt'] != null 
-          ? (data['updatedAt'] as Timestamp).toDate() 
-          : null,
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -192,7 +186,8 @@ class ReportModel {
   final String response;
   final String? attachmentUrl;
   final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime
+      updatedAt; // non‑nullable, but we supply a default in fromFirestore
 
   ReportModel({
     required this.id,
@@ -222,8 +217,8 @@ class ReportModel {
       status: data['status'] ?? 'pending',
       response: data['response'] ?? '',
       attachmentUrl: data['attachmentUrl'],
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
@@ -266,9 +261,7 @@ class CounterModel {
     return CounterModel(
       id: doc.id,
       counts: counts,
-      updatedAt: data['updatedAt'] != null 
-          ? (data['updatedAt'] as Timestamp).toDate() 
-          : DateTime.now(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 }

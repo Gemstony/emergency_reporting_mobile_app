@@ -13,19 +13,22 @@ class AuthRepository {
 
   Future<UserModel> login(String regNo, String password) async {
     try {
+      regNo = regNo.trim().toUpperCase();
       QuerySnapshot userQuery = await _firestore
           .collection(AppConstants.usersCollection)
           .where('regNo', isEqualTo: regNo)
           .limit(1)
           .get();
-
+      print("=======================");
+      print(userQuery.docs);
       if (userQuery.docs.isEmpty) {
         throw Exception('Username not registered');
-      }
-
+      } 
+ 
       final userData = userQuery.docs.first;
-      final status = userData.get('status') as String? ?? AppConstants.statusActive;
-      
+      final status =
+          userData.get('status') as String? ?? AppConstants.statusActive;
+
       if (status == AppConstants.statusInactive) {
         throw Exception('Account is deactivated. Please contact admin.');
       }
@@ -48,7 +51,8 @@ class AuthRepository {
     }
   }
 
-  Future<void> resetPassword(String email, String phone, String newPassword) async {
+  Future<void> resetPassword(
+      String email, String phone, String newPassword) async {
     try {
       QuerySnapshot userQuery = await _firestore
           .collection(AppConstants.usersCollection)
@@ -103,9 +107,10 @@ class AdminRepository {
         .collection(AppConstants.departmentsCollection)
         .doc(id)
         .update({
-          'status': active ? AppConstants.statusActive : AppConstants.statusInactive,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
+      'status':
+          active ? AppConstants.statusActive : AppConstants.statusInactive,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<List<DepartmentModel>> getDepartments() async {
@@ -113,7 +118,7 @@ class AdminRepository {
         .collection(AppConstants.departmentsCollection)
         .orderBy('name')
         .get();
-    
+
     return snapshot.docs
         .map((doc) => DepartmentModel.fromFirestore(doc))
         .toList();
@@ -143,13 +148,11 @@ class AdminRepository {
   }
 
   Future<void> toggleCourseStatus(String id, bool active) async {
-    await _firestore
-        .collection(AppConstants.coursesCollection)
-        .doc(id)
-        .update({
-          'status': active ? AppConstants.statusActive : AppConstants.statusInactive,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
+    await _firestore.collection(AppConstants.coursesCollection).doc(id).update({
+      'status':
+          active ? AppConstants.statusActive : AppConstants.statusInactive,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<List<CourseModel>> getCoursesByDepartment(String departmentId) async {
@@ -158,10 +161,8 @@ class AdminRepository {
         .where('departmentId', isEqualTo: departmentId)
         .orderBy('name')
         .get();
-    
-    return snapshot.docs
-        .map((doc) => CourseModel.fromFirestore(doc))
-        .toList();
+
+    return snapshot.docs.map((doc) => CourseModel.fromFirestore(doc)).toList();
   }
 
   Future<List<CourseModel>> getAllCourses() async {
@@ -169,30 +170,35 @@ class AdminRepository {
         .collection(AppConstants.coursesCollection)
         .orderBy('code')
         .get();
-    
-    return snapshot.docs
-        .map((doc) => CourseModel.fromFirestore(doc))
-        .toList();
+
+    return snapshot.docs.map((doc) => CourseModel.fromFirestore(doc)).toList();
   }
 
   // Register Student with new format: NIT/COURSE/YEAR/1001+
   Future<String> registerStudent(StudentData student) async {
     // Get next sequence starting from 1001
-    int sequence = await _getNextSequence(
-      student.courseCode, 
-      student.year,
-      isStudent: true
-    );
-    
+    int sequence = await _getNextSequence(student.courseCode, student.year,
+        isStudent: true);
+
     String regNo = Utils.generateRegNo(
       code: student.courseCode,
       year: student.year,
       sequence: sequence,
       isStudent: true,
     );
-    
+
     String password = Utils.generatePassword(student.lastName, student.year);
-    
+
+    try {
+      // Create Firebase Auth user
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: student.email,
+        password: password,
+      );
+    } catch (e) {
+      throw Exception('Failed to create auth user: $e');
+    }
+
     Map<String, dynamic> userData = {
       'regNo': regNo,
       'firstName': student.firstName,
@@ -207,31 +213,37 @@ class AdminRepository {
       'yearRegistered': student.year,
       'createdAt': FieldValue.serverTimestamp(),
     };
-    
+
     await _firestore.collection(AppConstants.usersCollection).add(userData);
     await _updateCounter(student.courseCode, student.year, sequence);
-    
+
     return regNo;
   }
 
   // Register Staff with new format: NIT/DEPT/YEAR/0001+
   Future<String> registerStaff(StaffData staff) async {
     // Get next sequence starting from 1 (0001)
-    int sequence = await _getNextSequence(
-      staff.departmentCode, 
-      staff.year,
-      isStudent: false
-    );
-    
+    int sequence = await _getNextSequence(staff.departmentCode, staff.year,
+        isStudent: false);
+
     String regNo = Utils.generateRegNo(
       code: staff.departmentCode,
       year: staff.year,
       sequence: sequence,
       isStudent: false,
     );
-    
+
     String password = Utils.generatePassword(staff.lastName, staff.year);
-    
+
+    try {
+      // Create Firebase Auth user
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: staff.email,
+        password: password,
+      );
+    } catch (e) {
+      throw Exception('Failed to create auth user: $e');
+    }
     Map<String, dynamic> userData = {
       'regNo': regNo,
       'firstName': staff.firstName,
@@ -245,10 +257,10 @@ class AdminRepository {
       'yearRegistered': staff.year,
       'createdAt': FieldValue.serverTimestamp(),
     };
-    
+
     await _firestore.collection(AppConstants.usersCollection).add(userData);
     await _updateCounter(staff.departmentCode, staff.year, sequence);
-    
+
     return regNo;
   }
 
@@ -261,20 +273,15 @@ class AdminRepository {
   }
 
   Future<void> deleteUser(String id) async {
-    await _firestore
-        .collection(AppConstants.usersCollection)
-        .doc(id)
-        .delete();
+    await _firestore.collection(AppConstants.usersCollection).doc(id).delete();
   }
 
   Future<void> toggleUserStatus(String id, bool active) async {
-    await _firestore
-        .collection(AppConstants.usersCollection)
-        .doc(id)
-        .update({
-          'status': active ? AppConstants.statusActive : AppConstants.statusInactive,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
+    await _firestore.collection(AppConstants.usersCollection).doc(id).update({
+      'status':
+          active ? AppConstants.statusActive : AppConstants.statusInactive,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<List<UserModel>> getUsersByRole(String role) async {
@@ -283,10 +290,8 @@ class AdminRepository {
         .where('role', isEqualTo: role)
         .orderBy('firstName')
         .get();
-    
-    return snapshot.docs
-        .map((doc) => UserModel.fromFirestore(doc))
-        .toList();
+
+    return snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList();
   }
 
   Future<List<UserModel>> getAllUsers() async {
@@ -294,29 +299,30 @@ class AdminRepository {
         .collection(AppConstants.usersCollection)
         .orderBy('firstName')
         .get();
-    
-    return snapshot.docs
-        .map((doc) => UserModel.fromFirestore(doc))
-        .toList();
+
+    return snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList();
   }
 
   // Get next sequence number
-  Future<int> _getNextSequence(String code, int year, {bool isStudent = false}) async {
+  Future<int> _getNextSequence(String code, int year,
+      {bool isStudent = false}) async {
     DocumentReference counterRef = _firestore
         .collection(AppConstants.countersCollection)
         .doc('regCounter');
-    
+
     DocumentSnapshot snapshot = await counterRef.get();
     String key = '$code/$year';
-    int startSequence = isStudent ? Utils.getStudentStartSequence() : Utils.getStaffStartSequence();
-    
+    int startSequence = isStudent
+        ? Utils.getStudentStartSequence()
+        : Utils.getStaffStartSequence();
+
     if (snapshot.exists) {
       Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
       if (data.containsKey(key)) {
         return (data[key] as int) + 1;
       }
     }
-    
+
     return startSequence;
   }
 
@@ -324,7 +330,7 @@ class AdminRepository {
     DocumentReference counterRef = _firestore
         .collection(AppConstants.countersCollection)
         .doc('regCounter');
-    
+
     String key = '$code/$year';
     await counterRef.set({
       key: sequence,
@@ -338,8 +344,8 @@ class ReportRepository {
 
   Future<void> submitReport(ReportModel report) async {
     await _firestore.collection(AppConstants.reportsCollection).add(
-      report.toFirestore(),
-    );
+          report.toFirestore(),
+        );
   }
 
   Future<String> uploadAttachment(File file) async {
@@ -357,10 +363,10 @@ class ReportRepository {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => ReportModel.fromFirestore(doc))
-              .toList();
-        });
+      return snapshot.docs
+          .map((doc) => ReportModel.fromFirestore(doc))
+          .toList();
+    });
   }
 
   Stream<List<ReportModel>> getReportsByUser(String userId) {
@@ -370,21 +376,22 @@ class ReportRepository {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => ReportModel.fromFirestore(doc))
-              .toList();
-        });
+      return snapshot.docs
+          .map((doc) => ReportModel.fromFirestore(doc))
+          .toList();
+    });
   }
 
-  Future<void> updateReportStatus(String reportId, String status, String response) async {
+  Future<void> updateReportStatus(
+      String reportId, String status, String response) async {
     await _firestore
         .collection(AppConstants.reportsCollection)
         .doc(reportId)
         .update({
-          'status': status,
-          'response': response,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
+      'status': status,
+      'response': response,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<List<ReportModel>> getAllReports() async {
@@ -392,10 +399,8 @@ class ReportRepository {
         .collection(AppConstants.reportsCollection)
         .orderBy('createdAt', descending: true)
         .get();
-    
-    return snapshot.docs
-        .map((doc) => ReportModel.fromFirestore(doc))
-        .toList();
+
+    return snapshot.docs.map((doc) => ReportModel.fromFirestore(doc)).toList();
   }
 }
 

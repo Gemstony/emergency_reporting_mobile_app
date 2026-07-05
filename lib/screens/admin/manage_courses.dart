@@ -25,14 +25,15 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final adminProvider = Provider.of<AdminProvider>(context, listen: false);
-      adminProvider.loadDepartments();
+      adminProvider.loadDepartments(); // for department dropdown
+      adminProvider.loadAllCourses(); // load all courses
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final adminProvider = Provider.of<AdminProvider>(context);
-    
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -52,13 +53,13 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
       ),
       body: adminProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : adminProvider.courses.isEmpty
+          : adminProvider.allCourses.isEmpty // ✅ use allCourses
               ? _buildEmptyState()
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  itemCount: adminProvider.courses.length,
+                  itemCount: adminProvider.allCourses.length,
                   itemBuilder: (context, index) {
-                    final course = adminProvider.courses[index];
+                    final course = adminProvider.allCourses[index];
                     return _buildCourseCard(course);
                   },
                 ),
@@ -98,6 +99,19 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
   }
 
   Widget _buildCourseCard(CourseModel course) {
+    final adminProvider = Provider.of<AdminProvider>(context, listen: false);
+    // Get department name from the list
+    final department = adminProvider.departments.firstWhere(
+      (d) => d.id == course.departmentId,
+      orElse: () => DepartmentModel(
+        id: course.departmentId,
+        code: '?',
+        name: 'Unknown',
+        description: '',
+        createdAt: DateTime.now(),
+      ),
+    );
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -111,8 +125,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
             offset: const Offset(0, 2),
           ),
         ],
-        border: course.isActive 
-            ? null 
+        border: course.isActive
+            ? null
             : Border.all(color: Colors.red.withOpacity(0.3)),
       ),
       child: Row(
@@ -121,8 +135,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: course.isActive 
-                  ? AppConstants.primaryColor.withOpacity(0.1) 
+              color: course.isActive
+                  ? AppConstants.primaryColor.withOpacity(0.1)
                   : Colors.grey.withOpacity(0.2),
               borderRadius: BorderRadius.circular(10),
             ),
@@ -132,8 +146,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: course.isActive 
-                      ? AppConstants.primaryColor 
+                  color: course.isActive
+                      ? AppConstants.primaryColor
                       : Colors.grey[600],
                 ),
               ),
@@ -153,16 +167,18 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                   ),
                 ),
                 Text(
-                  'Department: ${course.departmentId}',
+                  'Department: ${department.name}', // ✅ show department name
                   style: TextStyle(
                     fontSize: 11,
-                    color: course.isActive ? Colors.grey[500] : Colors.grey[400],
+                    color:
+                        course.isActive ? Colors.grey[500] : Colors.grey[400],
                   ),
                 ),
                 if (!course.isActive)
                   Container(
                     margin: const EdgeInsets.only(top: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: Colors.red.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
@@ -226,13 +242,18 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
     );
   }
 
+  // ----- The rest of the methods (dialogs, add/update/delete) remain the same -----
+  // They already call adminProvider.loadAllCourses() after operations,
+  // so the list will refresh automatically.
+  // (I'll keep them unchanged for brevity, but they are exactly as in your original file.)
+
   void _showAddCourseDialog() {
     _codeController.clear();
     _nameController.clear();
     _durationController.clear();
     _selectedDepartmentId = null;
     _editingId = null;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -244,7 +265,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
         content: SingleChildScrollView(
           child: Consumer<AdminProvider>(
             builder: (context, adminProvider, _) {
-              final activeDepartments = adminProvider.departments.where((d) => d.isActive).toList();
+              final activeDepartments =
+                  adminProvider.departments.where((d) => d.isActive).toList();
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -255,7 +277,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                       labelText: 'Select Department',
                       labelStyle: TextStyle(fontSize: 12),
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                     items: activeDepartments.map((dept) {
                       return DropdownMenuItem(
@@ -282,7 +305,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                       hintText: 'e.g., BIT',
                       hintStyle: TextStyle(fontSize: 12),
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -295,7 +319,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                       hintText: 'e.g., Bachelor of IT',
                       hintStyle: TextStyle(fontSize: 12),
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -309,7 +334,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                       hintText: 'e.g., 3',
                       hintStyle: TextStyle(fontSize: 12),
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                   ),
                 ],
@@ -350,7 +376,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
     _durationController.text = course.duration.toString();
     _selectedDepartmentId = course.departmentId;
     _editingId = course.id;
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -362,7 +388,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
         content: SingleChildScrollView(
           child: Consumer<AdminProvider>(
             builder: (context, adminProvider, _) {
-              final activeDepartments = adminProvider.departments.where((d) => d.isActive).toList();
+              final activeDepartments =
+                  adminProvider.departments.where((d) => d.isActive).toList();
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -373,7 +400,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                       labelText: 'Department',
                       labelStyle: TextStyle(fontSize: 12),
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                     items: activeDepartments.map((dept) {
                       return DropdownMenuItem(
@@ -398,7 +426,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                       labelText: 'Code',
                       labelStyle: TextStyle(fontSize: 12),
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -409,7 +438,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                       labelText: 'Course Name',
                       labelStyle: TextStyle(fontSize: 12),
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -421,7 +451,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                       labelText: 'Duration (Years)',
                       labelStyle: TextStyle(fontSize: 12),
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                   ),
                 ],
@@ -458,19 +489,15 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
 
   void _toggleCourseStatus(CourseModel course) async {
     final adminProvider = Provider.of<AdminProvider>(context, listen: false);
-    bool success = await adminProvider.toggleCourseStatus(
-      course.id, 
-      !course.isActive
-    );
-    
+    bool success =
+        await adminProvider.toggleCourseStatus(course.id, !course.isActive);
+
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            course.isActive 
-                ? 'Course deactivated successfully!' 
-                : 'Course activated successfully!'
-          ),
+          content: Text(course.isActive
+              ? 'Course deactivated successfully!'
+              : 'Course activated successfully!'),
           backgroundColor: AppConstants.successColor,
         ),
       );
@@ -495,9 +522,10 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              final adminProvider = Provider.of<AdminProvider>(context, listen: false);
+              final adminProvider =
+                  Provider.of<AdminProvider>(context, listen: false);
               bool success = await adminProvider.deleteCourse(course.id);
-              
+
               if (success) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -531,13 +559,13 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
       );
       return;
     }
-    
+
     setState(() {
       _isAdding = true;
     });
-    
+
     final adminProvider = Provider.of<AdminProvider>(context, listen: false);
-    
+
     final course = CourseModel(
       id: '',
       code: _codeController.text.trim().toUpperCase(),
@@ -546,13 +574,13 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
       duration: int.parse(_durationController.text.trim()),
       createdAt: DateTime.now(),
     );
-    
+
     bool success = await adminProvider.registerCourse(course);
-    
+
     setState(() {
       _isAdding = false;
     });
-    
+
     if (success) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -573,7 +601,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
 
   Future<void> _updateCourse() async {
     if (_editingId == null) return;
-    
+
     if (_selectedDepartmentId == null ||
         _codeController.text.isEmpty ||
         _nameController.text.isEmpty ||
@@ -586,26 +614,26 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
       );
       return;
     }
-    
+
     setState(() {
       _isAdding = true;
     });
-    
+
     final adminProvider = Provider.of<AdminProvider>(context, listen: false);
-    
+
     Map<String, dynamic> data = {
       'code': _codeController.text.trim().toUpperCase(),
       'name': _nameController.text.trim(),
       'departmentId': _selectedDepartmentId,
       'duration': int.parse(_durationController.text.trim()),
     };
-    
+
     bool success = await adminProvider.updateCourse(_editingId!, data);
-    
+
     setState(() {
       _isAdding = false;
     });
-    
+
     if (success) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(

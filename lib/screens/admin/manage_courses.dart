@@ -6,7 +6,6 @@ import '../../constants.dart';
 import '../../models.dart';
 
 class ManageCoursesScreen extends StatefulWidget {
-
   const ManageCoursesScreen({super.key});
 
   @override
@@ -55,9 +54,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
 //     }
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      
       appBar: AppBar(
-        automaticallyImplyLeading: false, 
+        automaticallyImplyLeading: false,
         title: const Text(
           'Manage Courses',
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
@@ -129,6 +127,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
         code: '?',
         name: 'Unknown',
         description: '',
+        category: 'Education',
         createdAt: DateTime.now(),
       ),
     );
@@ -286,8 +285,9 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
         content: SingleChildScrollView(
           child: Consumer<AdminProvider>(
             builder: (context, adminProvider, _) {
-              final activeDepartments =
-                  adminProvider.departments.where((d) => d.isActive).toList();
+              final activeDepartments = adminProvider.departments
+                  .where((d) => d.isActive && d.category == 'Education')
+                  .toList();
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

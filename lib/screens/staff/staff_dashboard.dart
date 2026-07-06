@@ -141,6 +141,7 @@ class _StaffHomeScreen extends StatelessWidget {
               code: '',
               name: 'Loading...',
               description: '',
+              category: 'Education',
               createdAt: DateTime.now(),
             ),
           );

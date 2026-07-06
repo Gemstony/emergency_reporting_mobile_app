@@ -47,6 +47,8 @@ class _StudentDashboardState extends State<StudentDashboard> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        automaticallyImplyLeading: false, 
+
         title: Text(
           _titles[_currentIndex],
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

@@ -19,6 +19,9 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   bool _isAdding = false;
   String? _editingId;
+  String? _selectedCategory; // 👈 new
+
+  final List<String> _categories = ['Education', 'Health', 'Security', 'Dean'];
 
   @override
   void initState() {
@@ -31,13 +34,11 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
   @override
   Widget build(BuildContext context) {
     final adminProvider = Provider.of<AdminProvider>(context);
-    // Build the content (body) without Scaffold
 
-    
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        automaticallyImplyLeading: false, 
+        automaticallyImplyLeading: false,
         title: const Text(
           'Manage Departments',
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
@@ -154,14 +155,34 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                     color: dept.isActive ? Colors.black87 : Colors.grey[600],
                   ),
                 ),
-                Text(
-                  dept.description,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: dept.isActive ? Colors.grey[500] : Colors.grey[400],
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: _getCategoryColor(dept.category),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        dept.category,
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      dept.description,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: dept.isActive ? Colors.grey[500] : Colors.grey[400],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
                 if (!dept.isActive)
                   Container(
@@ -186,7 +207,6 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
           ),
           Row(
             children: [
-              // Edit Button
               IconButton(
                 icon: Icon(
                   Icons.edit,
@@ -195,7 +215,6 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                 ),
                 onPressed: () => _showEditDepartmentDialog(dept),
               ),
-              // Deactivate/Activate Button
               IconButton(
                 icon: Icon(
                   dept.isActive ? Icons.block : Icons.check_circle,
@@ -204,7 +223,6 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                 ),
                 onPressed: () => _toggleDepartmentStatus(dept),
               ),
-              // Delete Button
               IconButton(
                 icon: const Icon(
                   Icons.delete,
@@ -220,10 +238,26 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
     );
   }
 
+  Color _getCategoryColor(String category) {
+    switch (category) {
+      case 'Education':
+        return Colors.blue;
+      case 'Health':
+        return Colors.green;
+      case 'Security':
+        return Colors.orange;
+      case 'Dean':
+        return Colors.purple;
+      default:
+        return Colors.grey;
+    }
+  }
+
   void _showAddDepartmentDialog() {
     _codeController.clear();
     _nameController.clear();
     _descriptionController.clear();
+    _selectedCategory = null;
     _editingId = null;
 
     showDialog(
@@ -280,6 +314,27 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                       EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
               ),
+              const SizedBox(height: 12),
+              // 👇 Category dropdown – required
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                style: const TextStyle(fontSize: 12),
+                decoration: const InputDecoration(
+                  labelText: 'Category *',
+                  labelStyle: TextStyle(fontSize: 12),
+                  border: OutlineInputBorder(),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                items: _categories.map((category) {
+                  return DropdownMenuItem(
+                    value: category,
+                    child: Text(category, style: const TextStyle(fontSize: 12)),
+                  );
+                }).toList(),
+                onChanged: (value) => setState(() => _selectedCategory = value),
+                validator: (value) => value == null ? 'Category is required' : null,
+              ),
             ],
           ),
         ),
@@ -314,6 +369,7 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
     _codeController.text = dept.code;
     _nameController.text = dept.name;
     _descriptionController.text = dept.description;
+    _selectedCategory = dept.category;
     _editingId = dept.id;
 
     showDialog(
@@ -363,6 +419,25 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                   contentPadding:
                       EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                style: const TextStyle(fontSize: 12),
+                decoration: const InputDecoration(
+                  labelText: 'Category *',
+                  labelStyle: TextStyle(fontSize: 12),
+                  border: OutlineInputBorder(),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                items: _categories.map((category) {
+                  return DropdownMenuItem(
+                    value: category,
+                    child: Text(category, style: const TextStyle(fontSize: 12)),
+                  );
+                }).toList(),
+                onChanged: (value) => setState(() => _selectedCategory = value),
               ),
             ],
           ),
@@ -463,6 +538,15 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
       );
       return;
     }
+    if (_selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a category'),
+          backgroundColor: AppConstants.errorColor,
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _isAdding = true;
@@ -475,6 +559,7 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
       code: _codeController.text.trim().toUpperCase(),
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim(),
+      category: _selectedCategory!, // 👈 required
       createdAt: DateTime.now(),
     );
 
@@ -514,6 +599,15 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
       );
       return;
     }
+    if (_selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a category'),
+          backgroundColor: AppConstants.errorColor,
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _isAdding = true;
@@ -525,6 +619,7 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
       'code': _codeController.text.trim().toUpperCase(),
       'name': _nameController.text.trim(),
       'description': _descriptionController.text.trim(),
+      'category': _selectedCategory,
     };
 
     bool success = await adminProvider.updateDepartment(_editingId!, data);

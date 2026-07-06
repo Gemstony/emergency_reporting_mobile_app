@@ -9,7 +9,7 @@ import '../../models.dart';
 import '../../utils.dart';
 
 class ReportAcademicScreen extends StatefulWidget {
-  final bool embedded; // true when used inside dashboard
+  final bool embedded;
   const ReportAcademicScreen({super.key, this.embedded = false});
 
   @override
@@ -19,16 +19,29 @@ class ReportAcademicScreen extends StatefulWidget {
 class _ReportAcademicScreenState extends State<ReportAcademicScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  String? _selectedDepartmentId;
+  final TextEditingController _departmentController = TextEditingController(); // 👈 new
   bool _isSubmitting = false;
 
-  Map<String, dynamic>? _location;
-  bool _isGettingLocation = false;
-
-  // Department data
+  // Department & Category
   List<DepartmentModel> _departments = [];
   bool _loadingDepartments = true;
   String? _departmentsError;
+  String? _selectedCategory;
+  DepartmentModel? _selectedDepartment;
+
+  // Location
+  Map<String, dynamic>? _location;
+  bool _isGettingLocation = false;
+
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _formKey = GlobalKey();
+
+  final List<Map<String, dynamic>> _categories = [
+    {'name': 'Education', 'icon': Icons.school, 'color': const Color(0xFF4CAF50)},
+    {'name': 'Health', 'icon': Icons.health_and_safety, 'color': const Color(0xFFE74C3C)},
+    {'name': 'Security', 'icon': Icons.security, 'color': const Color(0xFFF39C12)},
+    {'name': 'Dean', 'icon': Icons.account_balance, 'color': const Color(0xFF9B59B6)},
+  ];
 
   @override
   void initState() {
@@ -42,6 +55,8 @@ class _ReportAcademicScreenState extends State<ReportAcademicScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _departmentController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -51,8 +66,7 @@ class _ReportAcademicScreenState extends State<ReportAcademicScreen> {
       await adminProvider.loadDepartments();
       if (!mounted) return;
       setState(() {
-        _departments =
-            adminProvider.departments.where((d) => d.isActive).toList();
+        _departments = adminProvider.departments.where((d) => d.isActive).toList();
         _loadingDepartments = false;
       });
     } catch (e) {
@@ -66,15 +80,14 @@ class _ReportAcademicScreenState extends State<ReportAcademicScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // If embedded, return only the content (no Scaffold/AppBar)
     if (widget.embedded) {
       return _buildContent();
     }
-    // Standalone with Scaffold
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Report Academic Issue'),
+        automaticallyImplyLeading: false,
+        title: const Text('Report Issue'),
         backgroundColor: AppConstants.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -84,189 +97,397 @@ class _ReportAcademicScreenState extends State<ReportAcademicScreen> {
   }
 
   Widget _buildContent() {
+    final authProvider = Provider.of<AuthProvider>(context);
+
     return SingleChildScrollView(
+      controller: _scrollController,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Department',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 6),
-          _buildDepartmentDropdown(),
-          const SizedBox(height: 16),
-
-          const Text('Issue Title',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 6),
-          TextField(
-            controller: _titleController,
-            style: const TextStyle(fontSize: 12),
-            decoration: InputDecoration(
-              hintText: 'Enter a brief title...',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
+          const Text(
+            'Select Category',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Choose the type of issue you want to report',
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
           ),
           const SizedBox(height: 16),
 
-          const Text('Full Description',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 6),
-          TextField(
-            controller: _descriptionController,
-            style: const TextStyle(fontSize: 12),
-            maxLines: 6,
-            decoration: InputDecoration(
-              hintText: 'Describe the issue in detail...',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.2,
+            children: _categories.map((cat) {
+              final isSelected = _selectedCategory == cat['name'];
+              return _buildCategoryCard(
+                cat['name'] as String,
+                cat['icon'] as IconData,
+                cat['color'] as Color,
+                isSelected,
+                authProvider,
+              );
+            }).toList(),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          // Location Row
-          Row(
-            children: [
-              const Expanded(
-                child: Text('Location (Optional)',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-              ),
-              if (_location != null)
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.red, size: 20),
-                  onPressed: () => setState(() => _location = null),
-                ),
-              Flexible(
-                child: ElevatedButton.icon(
-                  onPressed: _isGettingLocation ? null : _getCurrentLocation,
-                  icon: _isGettingLocation
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.my_location, size: 18),
-                  label: Text(
-                      _location == null ? 'Get Location' : 'Update Location'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _location == null
-                        ? AppConstants.primaryColor
-                        : Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          if (_location != null) ...[
-            const SizedBox(height: 8),
+          if (_selectedCategory != null && _selectedDepartment != null)
             Container(
-              padding: const EdgeInsets.all(12),
+              key: _formKey,
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.green.withOpacity(0.2)),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: Row(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.location_on, color: Colors.green, size: 16),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _location!['address'] ?? 'Location captured',
-                      style: const TextStyle(fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Icon(
+                        _categories.firstWhere((c) => c['name'] == _selectedCategory)['icon'],
+                        color: _categories.firstWhere((c) => c['name'] == _selectedCategory)['color'],
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Category: $_selectedCategory',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: _categories.firstWhere((c) => c['name'] == _selectedCategory)['color'],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 20),
+
+                  // Department (auto-filled, disabled) - with controller
+                  const Text(
+                    'Department',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _departmentController, // 👈 using controller
+                    enabled: false,
+                    style: const TextStyle(fontSize: 12, color: Colors.black87),
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      prefixIcon: const Icon(Icons.business, size: 18, color: Colors.grey),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Title
+                  const Text(
+                    'Issue Title',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _titleController,
+                    style: const TextStyle(fontSize: 12),
+                    decoration: InputDecoration(
+                      hintText: 'Enter a brief title...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      prefixIcon: const Icon(Icons.title, size: 18, color: Colors.grey),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Description
+                  const Text(
+                    'Full Description',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _descriptionController,
+                    style: const TextStyle(fontSize: 12),
+                    maxLines: 6,
+                    decoration: InputDecoration(
+                      hintText: 'Describe the issue in detail...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      prefixIcon: const Icon(Icons.description, size: 18, color: Colors.grey),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Location (only for Health, Security, Dean)
+                  if (_selectedCategory != 'Education') ...[
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Location (Optional)',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        if (_location != null)
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                            onPressed: () => setState(() => _location = null),
+                          ),
+                        Flexible(
+                          child: ElevatedButton.icon(
+                            onPressed: _isGettingLocation ? null : _getCurrentLocation,
+                            icon: _isGettingLocation
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.my_location, size: 18),
+                            label: Text(
+                              _location == null ? 'Get Location' : 'Update Location',
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _location == null
+                                  ? AppConstants.primaryColor
+                                  : Colors.green,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_location != null) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.green.withOpacity(0.2)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.location_on, color: Colors.green, size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _location!['address'] ?? 'Location captured',
+                                style: const TextStyle(fontSize: 12),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Submit Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _isSubmitting ? null : _submitReport,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppConstants.primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text(
+                              'SUBMIT REPORT',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ),
                 ],
               ),
             ),
-          ],
-          const SizedBox(height: 24),
 
-          // Submit Button
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: _isSubmitting ? null : _submitReport,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppConstants.primaryColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+          if (_loadingDepartments) ...[
+            const SizedBox(height: 20),
+            const Center(child: CircularProgressIndicator()),
+          ],
+          if (_departmentsError != null) ...[
+            const SizedBox(height: 20),
+            Center(
+              child: Text(
+                'Error: $_departmentsError',
+                style: const TextStyle(color: Colors.red, fontSize: 12),
               ),
-              child: _isSubmitting
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('SUBMIT REPORT',
-                      style: TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.bold)),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildDepartmentDropdown() {
-    if (_loadingDepartments) {
-      return const SizedBox(
-        height: 56,
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-    if (_departmentsError != null) {
-      return SizedBox(
-        height: 56,
-        child: Center(
-          child: Text('Error: $_departmentsError',
-              style: const TextStyle(color: Colors.red, fontSize: 12)),
-        ),
-      );
-    }
-    if (_departments.isEmpty) {
-      return const SizedBox(
-        height: 56,
-        child: Center(
-          child: Text('No active departments.',
-              style: TextStyle(fontSize: 12, color: Colors.grey)),
-        ),
-      );
-    }
+  Widget _buildCategoryCard(
+    String category,
+    IconData icon,
+    Color color,
+    bool isSelected,
+    AuthProvider authProvider,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        DepartmentModel? newDept = _getDepartmentForCategory(category, authProvider);
+        setState(() {
+          _selectedCategory = category;
+          _location = null;
+          _selectedDepartment = newDept;
+          _departmentController.text = newDept?.name ?? ''; // 👈 update controller
+        });
 
-    final seenIds = <String>{};
-    final uniqueDepartments =
-        _departments.where((dept) => seenIds.add(dept.id)).toList();
-
-    return DropdownButtonFormField<String>(
-      value: _selectedDepartmentId,
-      isExpanded: true,
-      style: const TextStyle(fontSize: 12, color: Colors.black),
-      decoration: InputDecoration(
-        hintText: 'Select Department',
-        hintStyle: const TextStyle(fontSize: 12, color: Colors.grey),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      ),
-      items: uniqueDepartments.map((dept) {
-        return DropdownMenuItem<String>(
-          value: dept.id,
-          child: Text(
-            dept.name,
-            style: const TextStyle(fontSize: 12),
-            overflow: TextOverflow.ellipsis,
+        if (newDept != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToForm();
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('No department found for category "$category".'),
+              backgroundColor: AppConstants.errorColor,
+            ),
+          );
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected ? color : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? color : Colors.grey[300]!,
+            width: isSelected ? 3 : 1,
           ),
-        );
-      }).toList(),
-      onChanged: (value) => setState(() => _selectedDepartmentId = value),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.white.withOpacity(0.2) : color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.white : color,
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              category,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected ? Colors.white : Colors.black87,
+              ),
+            ),
+            if (isSelected) ...[
+              const SizedBox(height: 4),
+              Container(
+                width: 20,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
+  }
+
+  DepartmentModel? _getDepartmentForCategory(String category, AuthProvider authProvider) {
+    final user = authProvider.currentUser;
+    if (category == 'Education') {
+      final deptId = user?.departmentId;
+      if (deptId != null) {
+        final dept = _departments.firstWhere(
+          (d) => d.id == deptId,
+          orElse: () => _departments.isNotEmpty ? _departments.first : null!,
+        );
+        if (dept != null) return dept;
+      }
+      if (_departments.isNotEmpty) return _departments.first;
+      return null;
+    } else {
+      final candidates = _departments.where((d) => d.category == category).toList();
+      if (candidates.isNotEmpty) return candidates.first;
+      return null;
+    }
+  }
+
+  void _scrollToForm() {
+    if (_formKey.currentContext != null) {
+      Scrollable.ensureVisible(
+        _formKey.currentContext!,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   // ---------- Location Methods ----------
@@ -276,8 +497,9 @@ class _ReportAcademicScreenState extends State<ReportAcademicScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Location permission denied.'),
-              backgroundColor: AppConstants.errorColor),
+            content: Text('Location permission denied.'),
+            backgroundColor: AppConstants.errorColor,
+          ),
         );
       }
       return;
@@ -286,8 +508,9 @@ class _ReportAcademicScreenState extends State<ReportAcademicScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Enable location in settings.'),
-              backgroundColor: AppConstants.errorColor),
+            content: Text('Enable location in settings.'),
+            backgroundColor: AppConstants.errorColor,
+          ),
         );
       }
       return;
@@ -304,21 +527,23 @@ class _ReportAcademicScreenState extends State<ReportAcademicScreen> {
           _location = {
             'address': address,
             'lat': position.latitude,
-            'lng': position.longitude
+            'lng': position.longitude,
           };
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Location captured!'),
-              backgroundColor: AppConstants.successColor),
+            content: Text('Location captured!'),
+            backgroundColor: AppConstants.successColor,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error: $e'),
-              backgroundColor: AppConstants.errorColor),
+            content: Text('Error: $e'),
+            backgroundColor: AppConstants.errorColor,
+          ),
         );
       }
     } finally {
@@ -333,19 +558,21 @@ class _ReportAcademicScreenState extends State<ReportAcademicScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final reportProvider = Provider.of<ReportProvider>(context, listen: false);
 
-    if (_selectedDepartmentId == null) {
+    if (_selectedDepartment == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Select a department'),
-            backgroundColor: AppConstants.errorColor),
+          content: Text('Please select a category to auto‑fill department.'),
+          backgroundColor: AppConstants.errorColor,
+        ),
       );
       return;
     }
     if (_titleController.text.isEmpty || _descriptionController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Fill title and description'),
-            backgroundColor: AppConstants.errorColor),
+          content: Text('Fill title and description.'),
+          backgroundColor: AppConstants.errorColor,
+        ),
       );
       return;
     }
@@ -356,8 +583,8 @@ class _ReportAcademicScreenState extends State<ReportAcademicScreen> {
         id: '',
         reporterId: authProvider.currentUser?.id ?? '',
         reporterRegNo: authProvider.currentUser?.regNo ?? '',
-        targetDepartmentId: _selectedDepartmentId!,
-        category: AppConstants.categoryAcademic,
+        targetDepartmentId: _selectedDepartment!.id,
+        category: _selectedCategory!,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         status: AppConstants.statusPending,
@@ -372,28 +599,29 @@ class _ReportAcademicScreenState extends State<ReportAcademicScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content: Text('Report submitted!'),
-                backgroundColor: AppConstants.successColor),
+              content: Text('Report submitted!'),
+              backgroundColor: AppConstants.successColor,
+            ),
           );
-          // Clear form
           _titleController.clear();
           _descriptionController.clear();
           setState(() {
-            _selectedDepartmentId = null;
+            _selectedCategory = null;
+            _selectedDepartment = null;
             _location = null;
+            _departmentController.clear(); // 👈 clear department field
           });
-          // If not embedded, pop the screen
           if (!widget.embedded) {
             Navigator.pop(context);
           }
-          // If embedded, we stay on the screen but form is cleared.
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(reportProvider.error ?? 'Error'),
-                backgroundColor: AppConstants.errorColor),
+              content: Text(reportProvider.error ?? 'Error'),
+              backgroundColor: AppConstants.errorColor,
+            ),
           );
         }
       }
@@ -401,8 +629,9 @@ class _ReportAcademicScreenState extends State<ReportAcademicScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error: $e'),
-              backgroundColor: AppConstants.errorColor),
+            content: Text('Error: $e'),
+            backgroundColor: AppConstants.errorColor,
+          ),
         );
       }
     } finally {

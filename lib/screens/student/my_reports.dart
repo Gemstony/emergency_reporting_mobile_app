@@ -16,18 +16,10 @@ class MyReportsScreen extends StatefulWidget {
 
 class _MyReportsScreenState extends State<MyReportsScreen> {
   @override
-  void initState() {
-    super.initState();
-    // If not embedded, we can load reports here; but the dashboard already does that
-    // We'll rely on the provider's data.
-  }
-
-  @override
   Widget build(BuildContext context) {
     final reportProvider = Provider.of<ReportProvider>(context);
     final reports = reportProvider.reports;
 
-    // Build content
     Widget content = reportProvider.isLoading
         ? const Center(child: CircularProgressIndicator())
         : reports.isEmpty
@@ -41,14 +33,13 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                 },
               );
 
-    // If embedded, return content without Scaffold
     if (widget.embedded) {
       return content;
     }
-    // Standalone with Scaffold
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text(
           'My Reports History',
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
@@ -94,54 +85,67 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
   }
 
   Widget _buildReportCard(ReportModel report) {
+    // Get category color based on the new category values
+    final categoryColor = _getCategoryColor(report.category);
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.08),
-            blurRadius: 8,
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
+        border: Border.all(
+          color: categoryColor.withOpacity(0.1),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
+              // Category Badge with new labels
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Utils.getCategoryColor(report.category).withOpacity(0.15),
+                  color: categoryColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: categoryColor.withOpacity(0.3),
+                    width: 1,
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Utils.getCategoryIcon(report.category),
+                      _getCategoryIcon(report.category),
                       size: 14,
-                      color: Utils.getCategoryColor(report.category),
+                      color: categoryColor,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 6),
                     Text(
                       _getCategoryLabel(report.category),
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: Utils.getCategoryColor(report.category),
+                        color: categoryColor,
                       ),
                     ),
                   ],
                 ),
               ),
               const Spacer(),
+              // Status Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Utils.getStatusColor(report.status).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(20),
@@ -157,15 +161,19 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
+          
+          // Title
           Text(
             report.title,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
+          
+          // Description
           Text(
             report.description,
             style: TextStyle(
@@ -175,7 +183,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
+          
+          // Footer
           Row(
             children: [
               Icon(
@@ -191,6 +201,22 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   color: Colors.grey[400],
                 ),
               ),
+              if (report.location != null) ...[
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.location_on,
+                  size: 12,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Location',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey[400],
+                  ),
+                ),
+              ],
               const Spacer(),
               if (report.response.isNotEmpty) ...[
                 const Icon(
@@ -204,18 +230,21 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   style: TextStyle(
                     fontSize: 10,
                     color: AppConstants.primaryColor,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ],
           ),
+          
+          // Response
           if (report.response.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppConstants.primaryColor.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: AppConstants.primaryColor.withOpacity(0.1),
                 ),
@@ -232,9 +261,9 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
                   Expanded(
                     child: Text(
                       report.response,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: Colors.black87,
+                        color: Colors.grey[700],
                       ),
                     ),
                   ),
@@ -247,13 +276,44 @@ class _MyReportsScreenState extends State<MyReportsScreen> {
     );
   }
 
+  // ---------- Category Helpers (new labels) ----------
+  Color _getCategoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'education':
+        return const Color(0xFF4CAF50);
+      case 'health':
+        return const Color(0xFFE74C3C);
+      case 'security':
+        return const Color(0xFFF39C12);
+      case 'dean':
+        return const Color(0xFF9B59B6);
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'education':
+        return Icons.school;
+      case 'health':
+        return Icons.health_and_safety;
+      case 'security':
+        return Icons.security;
+      case 'dean':
+        return Icons.account_balance;
+      default:
+        return Icons.category;
+    }
+  }
+
   String _getCategoryLabel(String category) {
-    switch (category) {
-      case 'academic': return 'Academic';
+    switch (category.toLowerCase()) {
+      case 'education': return 'Education';
       case 'health': return 'Health';
       case 'security': return 'Security';
-      case 'harassment': return 'Harassment';
-      default: return 'Other';
+      case 'dean': return 'Dean';
+      default: return category;
     }
   }
 

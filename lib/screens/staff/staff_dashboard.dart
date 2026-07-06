@@ -1,4 +1,5 @@
 // lib/screens/staff/staff_dashboard.dart
+import 'package:emergency_report_system/screens/staff/department_reports.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers.dart';
@@ -19,7 +20,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
 
   final List<Widget> _screens = [
     const _StaffHomeScreen(),
-    const _StaffReportsScreen(embedded: true), // no Scaffold/AppBar
+     const DepartmentReportsScreen(embedded: true),
   ];
 
   final List<String> _titles = [

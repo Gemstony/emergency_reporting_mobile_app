@@ -78,7 +78,7 @@ class _BottomNavBarState extends State<BottomNavBar>
                           topRight: Radius.circular(40),
                         ),
                       ),
-                      child: Center(
+                      child: const Center(
                         child: Opacity(
                           opacity: 0.2,
                           child: Text(

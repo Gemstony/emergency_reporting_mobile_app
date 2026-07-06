@@ -23,8 +23,8 @@ class AuthRepository {
       print(userQuery.docs);
       if (userQuery.docs.isEmpty) {
         throw Exception('Username not registered');
-      } 
- 
+      }
+
       final userData = userQuery.docs.first;
       final status =
           userData.get('status') as String? ?? AppConstants.statusActive;
@@ -138,6 +138,23 @@ class AdminRepository {
         .collection(AppConstants.coursesCollection)
         .doc(id)
         .update(data);
+  }
+
+  // In repositories.dart (AdminRepository class)
+  Future<UserModel?> getUserById(String userId) async {
+    try {
+      DocumentSnapshot doc = await _firestore
+          .collection(AppConstants.usersCollection)
+          .doc(userId)
+          .get();
+
+      if (doc.exists) {
+        return UserModel.fromFirestore(doc);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<void> deleteCourse(String id) async {

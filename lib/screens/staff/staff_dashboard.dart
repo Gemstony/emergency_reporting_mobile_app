@@ -1,12 +1,15 @@
 // lib/screens/staff/staff_dashboard.dart
-import 'package:emergency_report_system/screens/staff/department_reports.dart';
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import 'package:provider/provider.dart';
 import '../../providers.dart';
 import '../../constants.dart';
 import '../../models.dart';
 import '../../utils.dart';
 import '../widgets/bottom_nav_bar.dart';
+import 'department_reports.dart';
+import 'profile_page.dart';
+import 'notifications.dart';
 
 class StaffDashboard extends StatefulWidget {
   const StaffDashboard({super.key});
@@ -20,28 +23,25 @@ class _StaffDashboardState extends State<StaffDashboard> {
 
   final List<Widget> _screens = [
     const _StaffHomeScreen(),
-     const DepartmentReportsScreen(embedded: true),
+    const DepartmentReportsScreen(embedded: true),
   ];
 
   final List<String> _titles = [
-    'Staff Dashboard',
+    'Dashboard',
     'Department Reports',
   ];
 
   @override
   void initState() {
     super.initState();
-    // Start listening to reports for the staff's department
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final user = authProvider.currentUser;
       final departmentId = user?.departmentId;
       if (departmentId != null) {
-        final reportProvider =
-            Provider.of<ReportProvider>(context, listen: false);
+        final reportProvider = Provider.of<ReportProvider>(context, listen: false);
         reportProvider.listenToReports(departmentId);
       }
-
       final adminProvider = Provider.of<AdminProvider>(context, listen: false);
       adminProvider.loadDepartments();
     });
@@ -51,20 +51,133 @@ class _StaffDashboardState extends State<StaffDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: Text(
-          _titles[_currentIndex],
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppConstants.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, size: 20),
-            onPressed: () => _showLogoutDialog(context),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF5FA4ED),
+                const Color(0xFF3A7CBD),
+                const Color(0xFF2C5F8A),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
-        ],
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  // Avatar with popup menu
+                  Consumer<AuthProvider>(
+                    builder: (context, authProvider, _) {
+                      final user = authProvider.currentUser;
+                      final initial = user?.firstName.isNotEmpty == true
+                          ? user!.firstName[0].toUpperCase()
+                          : 'S';
+                      return GestureDetector(
+                        onTap: () => _showProfilePopup(context),
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.4),
+                              width: 2,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              initial,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  // Title
+                  Expanded(
+                    child: Text(
+                      'EMERGENCE REPORTS',
+                      style: TextStyle(
+                        fontFamily: 'Times New Roman',
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 0.8,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 10,
+                            color: Colors.black.withOpacity(0.3),
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Notification Icon
+                  IconButton(
+                    icon: Stack(
+                      children: [
+                        const Icon(
+                          Icons.notifications_outlined,
+                          size: 24,
+                          color: Colors.white,
+                        ),
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const StaffNotificationsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  // Logout Icon
+                  IconButton(
+                    icon: const Icon(
+                      Icons.power_settings_new_outlined,
+                      size: 22,
+                      color: Colors.white,
+                    ),
+                    onPressed: () => _showLogoutDialog(context),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       body: IndexedStack(
         index: _currentIndex,
@@ -78,9 +191,235 @@ class _StaffDashboardState extends State<StaffDashboard> {
           });
         },
         items: const [
-          BottomNavItem(icon: Icons.home, label: 'Home'),
-          BottomNavItem(icon: Icons.list_alt, label: 'Reports'),
+          BottomNavItem(icon: Icons.home_outlined, label: 'Home'),
+          BottomNavItem(icon: Icons.receipt_long_outlined, label: 'Reports'),
         ],
+      ),
+    );
+  }
+
+  void _showProfilePopup(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.currentUser;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: AppConstants.primaryColor.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        user?.firstName.isNotEmpty == true
+                            ? user!.firstName[0].toUpperCase()
+                            : 'S',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppConstants.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user?.fullName ?? 'Staff',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        Text(
+                          user?.regNo ?? 'NIT/...',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(top: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppConstants.primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            user?.role.toUpperCase() ?? 'STAFF',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                              color: AppConstants.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 24),
+            _buildPopupOption(
+              context,
+              icon: Icons.person_outline,
+              title: 'My Profile',
+              subtitle: 'View your profile information',
+              color: AppConstants.primaryColor,
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const StaffProfilePage(),
+                  ),
+                );
+              },
+            ),
+            _buildPopupOption(
+              context,
+              icon: Icons.notifications_outlined,
+              title: 'Notifications',
+              subtitle: 'View your notifications',
+              color: Colors.orange,
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const StaffNotificationsScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildPopupOption(
+              context,
+              icon: Icons.logout_outlined,
+              title: 'Logout',
+              subtitle: 'Sign out of your account',
+              color: Colors.red,
+              onTap: () {
+                Navigator.pop(context);
+                _showLogoutDialog(context);
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.grey[100],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPopupOption(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
+          ],
+        ),
       ),
     );
   }
@@ -90,21 +429,26 @@ class _StaffDashboardState extends State<StaffDashboard> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: const Text('Logout', style: TextStyle(fontSize: 16)),
+        content: const Text(
+          'Are you sure you want to logout?',
+          style: TextStyle(fontSize: 12),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel', style: TextStyle(fontSize: 12)),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               Provider.of<AuthProvider>(context, listen: false).logout();
               Navigator.pushReplacementNamed(context, '/');
             },
-            style:
-                TextButton.styleFrom(foregroundColor: AppConstants.errorColor),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppConstants.errorColor,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Logout', style: TextStyle(fontSize: 12)),
           ),
         ],
@@ -120,765 +464,694 @@ class _StaffHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final adminProvider = Provider.of<AdminProvider>(context);
     final reportProvider = Provider.of<ReportProvider>(context);
     final user = authProvider.currentUser;
 
     final reports = reportProvider.reports;
     final total = reports.length;
-    final pending =
-        reports.where((r) => r.status == AppConstants.statusPending).length;
-    final resolved =
-        reports.where((r) => r.status == AppConstants.statusResolved).length;
+    final pending = reports.where((r) => r.status == AppConstants.statusPending).length;
+    final resolved = reports.where((r) => r.status == AppConstants.statusResolved).length;
 
-    // Consumer to get department name from AdminProvider
-    return Consumer<AdminProvider>(
-      builder: (context, adminProvider, _) {
-        String departmentName = 'Unknown';
-        if (user?.departmentId != null) {
-          final dept = adminProvider.departments.firstWhere(
-            (d) => d.id == user!.departmentId,
-            orElse: () => DepartmentModel(
-              id: '',
-              code: '',
-              name: 'Loading...',
-              description: '',
-              category: 'Education',
-              createdAt: DateTime.now(),
-            ),
-          );
-          departmentName = dept.name;
+    // Get department name
+    String departmentName = 'Unknown';
+    if (user?.departmentId != null) {
+      final dept = adminProvider.departments.firstWhere(
+        (d) => d.id == user!.departmentId,
+        orElse: () => DepartmentModel(
+          id: '',
+          code: '',
+          name: 'Loading...',
+          description: '',
+          category: 'General',
+          createdAt: DateTime.now(),
+        ),
+      );
+      departmentName = dept.name;
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        final userId = authProvider.currentUser?.id;
+        final departmentId = authProvider.currentUser?.departmentId;
+        if (departmentId != null) {
+          reportProvider.listenToReports(departmentId);
         }
-
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ---------- Welcome Card ----------
-              Container(
+        await adminProvider.loadDepartments();
+      },
+      child: Stack(
+        children: [
+          // Spider Web Background
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+            ),
+            child: CustomPaint(
+              painter: _StaffSpiderWebPainter(),
+              child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      AppConstants.primaryColor,
-                      AppConstants.primaryLight,
+                height: double.infinity,
+              ),
+            ),
+          ),
+          // Content
+          SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ===== Welcome Card =====
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF5FA4ED),
+                        const Color(0xFF7BB8F0),
+                        const Color(0xFF3A7CBD),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppConstants.primaryColor.withOpacity(0.4),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppConstants.primaryColor.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome, ${user?.displayName ?? 'Staff'}!',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        right: -20,
+                        top: -20,
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Reg No: ${user?.regNo ?? '---'}',
-                      style:
-                          const TextStyle(fontSize: 12, color: Colors.white70),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Department: $departmentName', // ✅ shows the name, not the ID
-                      style:
-                          const TextStyle(fontSize: 12, color: Colors.white70),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // ---------- Statistics ----------
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      'Received Reports',
-                      total.toString(),
-                      Icons.inbox,
-                    ),
+                      Positioned(
+                        left: -30,
+                        bottom: -30,
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.work_outline,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _getGreeting(),
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    Text(
+                                      user?.displayName ?? 'Staff',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.badge_outlined,
+                                color: Colors.white70,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                user?.regNo ?? '---',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  _getTodayDate(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.business_outlined,
+                                  size: 12,
+                                  color: Colors.white.withOpacity(0.8),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  departmentName,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.white.withOpacity(0.9),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
+                ),
+
+                const SizedBox(height: 20),
+
+                // ===== Statistics Cards =====
+                Row(
+                  children: [
+                    _buildStatCard(
+                      'Total Reports',
+                      total.toString(),
+                      Icons.inbox_outlined,
+                      AppConstants.primaryColor,
+                    ),
+                    const SizedBox(width: 12),
+                    _buildStatCard(
                       'Pending',
                       pending.toString(),
-                      Icons.pending,
-                      color: Colors.orange,
+                      Icons.pending_outlined,
+                      Colors.orange,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
+                    const SizedBox(width: 12),
+                    _buildStatCard(
                       'Resolved',
                       resolved.toString(),
-                      Icons.check_circle,
-                      color: Colors.green,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // ---------- Instructions ----------
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.08),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                      Icons.check_circle_outlined,
+                      Colors.green,
                     ),
                   ],
                 ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+
+                const SizedBox(height: 20),
+
+                // ===== Quick Actions =====
+                const Text(
+                  'Quick Actions',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          size: 20,
-                          color: AppConstants.primaryColor,
+                    Expanded(
+                      child: _buildQuickActionCard(
+                        'View Reports',
+                        Icons.receipt_long_outlined,
+                        AppConstants.primaryColor,
+                        () => _switchTab(context, 1),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildQuickActionCard(
+                        'Pending',
+                        Icons.pending_outlined,
+                        Colors.orange,
+                        () => _switchTab(context, 1),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // ===== Recent Reports =====
+                if (reports.isNotEmpty) ...[
+                  Row(
+                    children: [
+                      const Text(
+                        'Recent Reports',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Instructions',
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () => _switchTab(context, 1),
+                        child: const Text(
+                          'View All',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ...reports.take(3).map((report) => _buildRecentReportCard(report)),
+                ],
+
+                const SizedBox(height: 16),
+
+                // ===== Department Info =====
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.08),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppConstants.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.business_outlined,
+                          color: AppConstants.primaryColor,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'My Department',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              departmentName,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppConstants.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${reports.length} Reports',
                           style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
                             color: AppConstants.primaryColor,
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '• View reports sent to your department\n'
-                      '• Tap a report to view full details\n'
-                      '• Update status and add response',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey,
-                        height: 1.5,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // ---------- Helper: Stat Card ----------
-  Widget _buildStatCard(String title, String value, IconData icon,
-      {Color color = AppConstants.primaryColor}) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.grey,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ==================== STAFF REPORTS SCREEN (embedded) ====================
-class _StaffReportsScreen extends StatefulWidget {
-  final bool embedded;
-  const _StaffReportsScreen({this.embedded = false});
-
-  @override
-  State<_StaffReportsScreen> createState() => _StaffReportsScreenState();
-}
-
-class _StaffReportsScreenState extends State<_StaffReportsScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // The dashboard already starts the stream; we just rely on the provider.
-    // If standalone, we could start listening here, but for now we assume embedded.
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final reportProvider = Provider.of<ReportProvider>(context);
-    final reports = reportProvider.reports;
-
-    // Build content (no Scaffold/AppBar)
-    Widget content = reportProvider.isLoading
-        ? const Center(child: CircularProgressIndicator())
-        : reports.isEmpty
-            ? _buildEmptyState()
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: reports.length,
-                itemBuilder: (context, index) {
-                  final report = reports[index];
-                  return _buildReportCard(context, report);
-                },
-              );
-
-    // If embedded, return content without Scaffold
-    if (widget.embedded) {
-      return content;
-    }
-
-    // Standalone version (if needed)
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          'Department Reports',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppConstants.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: content,
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.inbox,
-            size: 80,
-            color: Colors.grey[300],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No reports yet',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Reports will appear here when submitted',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[400],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReportCard(BuildContext context, ReportModel report) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color:
-                      Utils.getCategoryColor(report.category).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Utils.getCategoryIcon(report.category),
-                      size: 14,
-                      color: Utils.getCategoryColor(report.category),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _getCategoryLabel(report.category),
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: Utils.getCategoryColor(report.category),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Utils.getStatusColor(report.status).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  _getStatusLabel(report.status),
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: Utils.getStatusColor(report.status),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            report.title,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            report.description,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(
-                Icons.person_outline,
-                size: 12,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(width: 4),
-              Text(
-                report.reporterRegNo,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey[400],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Icon(
-                Icons.calendar_today,
-                size: 12,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(width: 4),
-              Text(
-                Utils.formatDate(report.createdAt),
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey[400],
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.arrow_forward_ios, size: 14),
-                color: AppConstants.primaryColor,
-                onPressed: () {
-                  _showReportDetails(context, report);
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
-  void _showReportDetails(BuildContext context, ReportModel report) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _ReportDetailsBottomSheet(report: report),
-    );
-  }
-
-  String _getCategoryLabel(String category) {
-    switch (category) {
-      case 'academic':
-        return 'Academic';
-      case 'health':
-        return 'Health';
-      case 'security':
-        return 'Security';
-      case 'harassment':
-        return 'Harassment';
-      default:
-        return 'Other';
-    }
-  }
-
-  String _getStatusLabel(String status) {
-    switch (status) {
-      case 'pending':
-        return 'Pending';
-      case 'in-progress':
-        return 'In Progress';
-      case 'resolved':
-        return 'Resolved';
-      default:
-        return 'Unknown';
-    }
-  }
-}
-
-// ==================== BOTTOM SHEET (unchanged) ====================
-class _ReportDetailsBottomSheet extends StatefulWidget {
-  final ReportModel report;
-  const _ReportDetailsBottomSheet({required this.report});
-
-  @override
-  State<_ReportDetailsBottomSheet> createState() =>
-      _ReportDetailsBottomSheetState();
-}
-
-class _ReportDetailsBottomSheetState extends State<_ReportDetailsBottomSheet> {
-  final TextEditingController _responseController = TextEditingController();
-  String _selectedStatus = 'pending';
-  bool _isUpdating = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedStatus = widget.report.status;
-    _responseController.text = widget.report.response;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              widget.report.title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Utils.getCategoryColor(widget.report.category)
-                        .withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _getCategoryLabel(widget.report.category),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Utils.getCategoryColor(widget.report.category),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Utils.getStatusColor(widget.report.status)
-                        .withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _getStatusLabel(widget.report.status),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Utils.getStatusColor(widget.report.status),
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  Utils.formatDate(widget.report.createdAt),
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey[400],
-                  ),
-                ),
+                const SizedBox(height: 16),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Description:',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
+              child: Icon(icon, color: color, size: 16),
             ),
             const SizedBox(height: 4),
             Text(
-              widget.report.description,
-              style: const TextStyle(fontSize: 12),
-            ),
-            if (widget.report.attachmentUrl != null) ...[
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () {
-                  // View image full screen
-                },
-                child: Container(
-                  height: 100,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    image: DecorationImage(
-                      image: NetworkImage(widget.report.attachmentUrl!),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 16),
-            Text(
-              'Your Response:',
+              value,
               style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
               ),
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _responseController,
-              style: const TextStyle(fontSize: 12),
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Write your response here...',
-                hintStyle: const TextStyle(fontSize: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                contentPadding: const EdgeInsets.all(12),
-              ),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 9, color: Colors.grey),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: _selectedStatus,
-              style: const TextStyle(fontSize: 12),
-              decoration: InputDecoration(
-                labelText: 'Status',
-                labelStyle: const TextStyle(fontSize: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-              ),
-              items: const [
-                DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                DropdownMenuItem(
-                    value: 'in-progress', child: Text('In Progress')),
-                DropdownMenuItem(value: 'resolved', child: Text('Resolved')),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _selectedStatus = value!;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _isUpdating ? null : _updateReport,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppConstants.primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: _isUpdating
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Text(
-                        'UPDATE REPORT',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-              ),
-            ),
-            const SizedBox(height: 16),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _updateReport() async {
-    setState(() {
-      _isUpdating = true;
-    });
-    try {
-      final reportProvider =
-          Provider.of<ReportProvider>(context, listen: false);
-      bool success = await reportProvider.updateReportStatus(
-        widget.report.id,
-        _selectedStatus,
-        _responseController.text.trim(),
-      );
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Report updated successfully!'),
-            backgroundColor: AppConstants.successColor,
-          ),
-        );
-        Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(reportProvider.error ?? 'An error occurred'),
-            backgroundColor: AppConstants.errorColor,
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: AppConstants.errorColor,
+  Widget _buildQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-      );
-    } finally {
-      setState(() {
-        _isUpdating = false;
-      });
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 30),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentReportCard(ReportModel report) {
+    final color = _getCategoryColor(report.category);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Icon(
+                _getCategoryIcon(report.category),
+                color: color,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  report.title,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(report.status).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _getStatusLabel(report.status),
+                        style: TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w600,
+                          color: _getStatusColor(report.status),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      Utils.formatDate(report.createdAt),
+                      style: TextStyle(
+                        fontSize: 9,
+                        color: Colors.grey[400],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'ID: ${report.id.substring(0, 6)}',
+                        style: TextStyle(
+                          fontSize: 7,
+                          color: Colors.grey[500],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.arrow_forward_ios,
+            size: 14,
+            color: Colors.grey[300],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'education': return const Color(0xFF4CAF50);
+      case 'health': return const Color(0xFFE74C3C);
+      case 'security': return const Color(0xFFF39C12);
+      case 'dean': return const Color(0xFF9B59B6);
+      default: return Colors.grey;
     }
   }
 
-  String _getCategoryLabel(String category) {
-    switch (category) {
-      case 'academic':
-        return 'Academic';
-      case 'health':
-        return 'Health';
-      case 'security':
-        return 'Security';
-      case 'harassment':
-        return 'Harassment';
-      default:
-        return 'Other';
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'education': return Icons.school;
+      case 'health': return Icons.health_and_safety;
+      case 'security': return Icons.security;
+      case 'dean': return Icons.account_balance;
+      default: return Icons.category;
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'pending': return Colors.orange;
+      case 'in-progress': return Colors.blue;
+      case 'resolved': return Colors.green;
+      default: return Colors.grey;
     }
   }
 
   String _getStatusLabel(String status) {
     switch (status) {
-      case 'pending':
-        return 'Pending';
-      case 'in-progress':
-        return 'In Progress';
-      case 'resolved':
-        return 'Resolved';
-      default:
-        return 'Unknown';
+      case 'pending': return 'Pending';
+      case 'in-progress': return 'In Progress';
+      case 'resolved': return 'Resolved';
+      default: return 'Unknown';
     }
   }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    if (hour < 21) return 'Good Evening';
+    return 'Good Night';
+  }
+
+  String _getTodayDate() {
+    final now = DateTime.now();
+    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${days[now.weekday - 1]}, ${now.day} ${months[now.month - 1]}';
+  }
+
+  void _switchTab(BuildContext context, int index) {
+    final parent = context.findAncestorStateOfType<_StaffDashboardState>();
+    if (parent != null) {
+      parent.setState(() {
+        parent._currentIndex = index;
+      });
+    }
+  }
+}
+
+// ==================== SPIDER WEB PAINTER ====================
+class _StaffSpiderWebPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppConstants.primaryColor.withOpacity(0.04)
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final maxRadius = size.width > size.height ? size.width : size.height;
+
+    for (int i = 1; i <= 8; i++) {
+      final radius = (maxRadius / 8) * i;
+      canvas.drawCircle(center, radius, paint);
+    }
+
+    for (int i = 0; i < 24; i++) {
+      final angle = (i * 15) * 3.14159 / 180;
+      final dx = maxRadius * 0.9 * math.cos(angle);
+      final dy = maxRadius * 0.9 * math.sin(angle);
+      canvas.drawLine(center, Offset(center.dx + dx, center.dy + dy), paint);
+    }
+
+    _drawCornerWeb(canvas, size, Offset(50, 50), 80, 6);
+    _drawCornerWeb(canvas, size, Offset(size.width - 50, 50), 80, 6);
+    _drawCornerWeb(canvas, size, Offset(50, size.height - 50), 80, 6);
+    _drawCornerWeb(canvas, size, Offset(size.width - 50, size.height - 50), 80, 6);
+  }
+
+  void _drawCornerWeb(Canvas canvas, Size size, Offset center, double maxRadius, int rings) {
+    final paint = Paint()
+      ..color = AppConstants.primaryColor.withOpacity(0.025)
+      ..strokeWidth = 0.8
+      ..style = PaintingStyle.stroke;
+
+    for (int i = 1; i <= rings; i++) {
+      final radius = (maxRadius / rings) * i;
+      canvas.drawCircle(center, radius, paint);
+    }
+
+    for (int i = 0; i < 12; i++) {
+      final angle = (i * 30) * 3.14159 / 180;
+      final dx = maxRadius * 0.9 * math.cos(angle);
+      final dy = maxRadius * 0.9 * math.sin(angle);
+      canvas.drawLine(center, Offset(center.dx + dx, center.dy + dy), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

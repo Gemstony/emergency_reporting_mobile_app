@@ -67,7 +67,7 @@ class _RegisterStudentPopupState extends State<RegisterStudentPopup> {
                     color: AppConstants.primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.person_add,
                     color: AppConstants.primaryColor,
                     size: 28,
@@ -108,7 +108,7 @@ class _RegisterStudentPopupState extends State<RegisterStudentPopup> {
                       size: 48,
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Student Registered Successfully!',
                       style: TextStyle(
                         fontSize: 14,
@@ -204,7 +204,7 @@ class _RegisterStudentPopupState extends State<RegisterStudentPopup> {
                       ),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<String>(
-                        initialValue: _selectedDepartmentId,
+                        value: _selectedDepartmentId,
                         style: const TextStyle(fontSize: 12),
                         decoration: InputDecoration(
                           hintText: 'Select Department',
@@ -301,7 +301,7 @@ class _RegisterStudentPopupState extends State<RegisterStudentPopup> {
                             ),
                             if (_showCourseDropdown && _filteredCourses.isNotEmpty)
                               Container(
-                                constraints: const BoxConstraints(
+                                constraints: BoxConstraints(
                                   maxHeight: 150,
                                 ),
                                 decoration: BoxDecoration(
@@ -345,14 +345,14 @@ class _RegisterStudentPopupState extends State<RegisterStudentPopup> {
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.check_circle,
                                       size: 16,
                                       color: AppConstants.successColor,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Selected: $_selectedCourseCode',
+                                      'Selected: ${_selectedCourseCode}',
                                       style: const TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
@@ -536,19 +536,19 @@ class _RegisterStudentPopupState extends State<RegisterStudentPopup> {
                             color: AppConstants.primaryColor.withOpacity(0.2),
                           ),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
                             Icon(
                               Icons.info_outline,
                               size: 16,
                               color: AppConstants.primaryColor,
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'Reg No will be auto-generated as NIT/COURSE/YEAR/XXXX\n'
                                 'Default Password: lastname@year',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 10,
                                   color: Colors.grey,
                                 ),

@@ -1,4 +1,6 @@
 // lib/screens/admin/admin_dashboard.dart
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers.dart';
@@ -11,6 +13,7 @@ import 'manage_users.dart';
 import 'view_all_reports.dart';
 import 'notifications.dart';
 import 'profile_page.dart';
+import 'more_page.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -45,177 +48,187 @@ class _AdminDashboardState extends State<AdminDashboard> {
     });
   }
 
-  void _showActionsMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.person_outline),
-              title: const Text('Profile'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfilePage()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.notifications_outlined),
-              title: const Text('Notifications'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const NotificationsScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.refresh),
-              title: const Text('Refresh Data'),
-              onTap: () {
-                Navigator.pop(context);
-                _refreshData(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Logout', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.pop(context);
-                _showLogoutDialog(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final bool isHomeScreen = _currentIndex == 0;
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      // appBar: AppBar(
-      //   title: const Text(
-      //     'Admin Dashboard',
-      //     style: TextStyle(
-      //       fontSize: 18,
-      //       fontWeight: FontWeight.bold,
-      //       color: Colors.white,
-      //     ),
-      //   ),
-      //   backgroundColor: AppConstants.primaryColor,
-      //   foregroundColor: Colors.white,
-      //   elevation: 0,
-      //   centerTitle: true,
-      //   leading: Consumer<AuthProvider>(
-      //     builder: (context, authProvider, _) {
-      //       final user = authProvider.currentUser;
-      //       final initial = user?.firstName.isNotEmpty == true
-      //           ? user!.firstName[0].toUpperCase()
-      //           : 'A';
-      //       return Padding(
-      //         padding: const EdgeInsets.all(8.0),
-      //         child: GestureDetector(
-      //           onTap: () {
-      //             Navigator.push(
-      //               context,
-      //               MaterialPageRoute(
-      //                 builder: (context) => const ProfilePage(),
-      //               ),
-      //             );
-      //           },
-      //           child: Container(
-      //             width: 40,
-      //             height: 40,
-      //             decoration: BoxDecoration(
-      //               color: Colors.white.withOpacity(0.2),
-      //               shape: BoxShape.circle,
-      //               border: Border.all(
-      //                 color: Colors.white.withOpacity(0.4),
-      //                 width: 2,
-      //               ),
-      //             ),
-      //             child: Center(
-      //               child: Text(
-      //                 initial,
-      //                 style: const TextStyle(
-      //                   color: Colors.white,
-      //                   fontSize: 16,
-      //                   fontWeight: FontWeight.bold,
-      //                 ),
-      //               ),
-      //             ),
-      //           ),
-      //         ),
-      //       );
-      //     },
-      //   ),
-      //   actions: [
-      //     // Bell Icon for Notifications
-      //     IconButton(
-      //       icon: Stack(
-      //         children: [
-      //           const Icon(
-      //             Icons.notifications_outlined,
-      //             size: 28,
-      //             color: Colors.white,
-      //           ),
-      //           Positioned(
-      //             right: 0,
-      //             top: 0,
-      //             child: Container(
-      //               width: 10,
-      //               height: 10,
-      //               decoration: const BoxDecoration(
-      //                 color: Colors.red,
-      //                 shape: BoxShape.circle,
-      //               ),
-      //             ),
-      //           ),
-      //         ],
-      //       ),
-      //       onPressed: () {
-      //         Navigator.push(
-      //           context,
-      //           MaterialPageRoute(
-      //             builder: (context) => const NotificationsScreen(),
-      //           ),
-      //         );
-      //       },
-      //     ),
-      //     const SizedBox(width: 8),
-      //     // Refresh button
-      //     IconButton(
-      //       icon: const Icon(
-      //         Icons.refresh,
-      //         size: 24,
-      //         color: Colors.white,
-      //       ),
-      //       onPressed: () {
-      //         _refreshData(context);
-      //       },
-      //     ),
-      //     const SizedBox(width: 4),
-      //   ],
-      // ),
-      body: _screens[_currentIndex],
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showActionsMenu(context);
-        },
-        backgroundColor: AppConstants.primaryColor,
-        child: const Icon(Icons.more_vert, color: Colors.white),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: Container(
+          height: 60,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF5FA4ED),
+                const Color(0xFF3A7CBD),
+                const Color(0xFF2C5F8A),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  // Profile Avatar with Popup Menu
+                  Consumer<AuthProvider>(
+                    builder: (context, authProvider, _) {
+                      final user = authProvider.currentUser;
+                      final initial = user?.firstName.isNotEmpty == true
+                          ? user!.firstName[0].toUpperCase()
+                          : 'A';
+                      return GestureDetector(
+                        onTap: () {
+                          _showProfilePopup(context);
+                        },
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.4),
+                              width: 2,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              initial,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  
+                  const SizedBox(width: 12),
+                  
+                  // Title - Always "NIT EMERGENCE SYSTEM"
+                  Expanded(
+                    child: Text(
+                      'NIT EMERGENCE SYSTEM',
+                      style: TextStyle(
+                        fontFamily: 'Times New Roman',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 1.5,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 10,
+                            color: Colors.black.withOpacity(0.3),
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  
+                  // Notification Icon
+                  IconButton(
+                    icon: Stack(
+                      children: [
+                        const Icon(
+                          Icons.notifications_outlined,
+                          size: 26,
+                          color: Colors.white,
+                        ),
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  
+                  // More Icon
+                  IconButton(
+                    icon: const Icon(
+                      Icons.more_vert,
+                      size: 26,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MorePage(),
+                        ),
+                      );
+                    },
+                  ),
+                  
+                  // Sign Out Icon
+                  IconButton(
+                    icon: const Icon(
+                      Icons.logout_outlined,
+                      size: 24,
+                      color: Colors.white,
+                    ),
+                    onPressed: () => _showLogoutDialog(context),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      body: Stack(
+        children: [
+          // Spider Web Background Pattern (only on Home)
+          if (isHomeScreen)
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+              ),
+              child: CustomPaint(
+                painter: _SpiderWebPainter(),
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  child: _screens[_currentIndex],
+                ),
+              ),
+            )
+          else
+            _screens[_currentIndex],
+        ],
+      ),
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -228,33 +241,244 @@ class _AdminDashboardState extends State<AdminDashboard> {
           BottomNavItem(icon: Icons.business_outlined, label: 'Depts'),
           BottomNavItem(icon: Icons.book_outlined, label: 'Courses'),
           BottomNavItem(icon: Icons.report_outlined, label: 'Reports'),
-          BottomNavItem(
-              icon: Icons.people_outline,
-              label: 'Users'), // Changed from More to Users
+          BottomNavItem(icon: Icons.people_outline, label: 'Users'),
         ],
       ),
     );
   }
 
-  Future<void> _refreshData(BuildContext context) async {
-    final adminProvider = Provider.of<AdminProvider>(context, listen: false);
-    final reportProvider = Provider.of<ReportProvider>(context, listen: false);
-    await Future.wait([
-      adminProvider.loadDepartments(),
-      adminProvider.loadAllCourses(),
-      adminProvider.loadStudents(),
-      adminProvider.loadStaff(),
-      reportProvider.loadAllReports(),
-    ]);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Data refreshed!'),
-        backgroundColor: AppConstants.successColor,
-        duration: Duration(seconds: 1),
+  // ==================== PROFILE POPUP ====================
+  void _showProfilePopup(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.currentUser;
+    
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            // User Info
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: AppConstants.primaryColor.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        user?.firstName.isNotEmpty == true
+                            ? user!.firstName[0].toUpperCase()
+                            : 'A',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppConstants.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user?.fullName ?? 'Admin User',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        Text(
+                          user?.email ?? 'admin@nit.ac.tz',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(top: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppConstants.primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            user?.role.toUpperCase() ?? 'ADMIN',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                              color: AppConstants.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const Divider(height: 24),
+            
+            // Profile Option
+            _buildPopupOption(
+              context,
+              icon: Icons.person_outline,
+              title: 'Profile',
+              subtitle: 'View and edit your profile',
+              color: AppConstants.primaryColor,
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfilePage(),
+                  ),
+                );
+              },
+            ),
+            
+            // Logout Option
+            _buildPopupOption(
+              context,
+              icon: Icons.logout_outlined,
+              title: 'Logout',
+              subtitle: 'Sign out of your account',
+              color: Colors.red,
+              onTap: () {
+                Navigator.pop(context);
+                _showLogoutDialog(context);
+              },
+            ),
+            
+            // Cancel Button
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.grey[100],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
   }
 
+  // ==================== POPUP OPTION WIDGET ====================
+  Widget _buildPopupOption(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 14,
+              color: Colors.grey[400],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ==================== LOGOUT DIALOG ====================
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -286,6 +510,64 @@ class _AdminDashboardState extends State<AdminDashboard> {
       ),
     );
   }
+}
+
+// ==================== SPIDER WEB PAINTER ====================
+class _SpiderWebPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey.withOpacity(0.06)
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final maxRadius = size.width > size.height ? size.width : size.height;
+
+    // Draw concentric circles (web rings)
+    for (int i = 1; i <= 8; i++) {
+      final radius = (maxRadius / 8) * i;
+      canvas.drawCircle(center, radius, paint);
+    }
+
+    // Draw radial lines (spokes)
+    for (int i = 0; i < 24; i++) {
+      final angle = (i * 15) * 3.14159 / 180;
+      final dx = maxRadius * 0.9 * cos(angle);
+      final dy = maxRadius * 0.9 * sin(angle);
+      canvas.drawLine(center, Offset(center.dx + dx, center.dy + dy), paint);
+    }
+
+    // Draw smaller spider web patterns in corners
+    _drawCornerWeb(canvas, size, Offset(50, 50), 80, 6);
+    _drawCornerWeb(canvas, size, Offset(size.width - 50, 50), 80, 6);
+    _drawCornerWeb(canvas, size, Offset(50, size.height - 50), 80, 6);
+    _drawCornerWeb(canvas, size, Offset(size.width - 50, size.height - 50), 80, 6);
+  }
+
+  void _drawCornerWeb(Canvas canvas, Size size, Offset center, double maxRadius, int rings) {
+    final paint = Paint()
+      ..color = Colors.grey.withOpacity(0.04)
+      ..strokeWidth = 0.8
+      ..style = PaintingStyle.stroke;
+
+    // Draw rings
+    for (int i = 1; i <= rings; i++) {
+      final radius = (maxRadius / rings) * i;
+      canvas.drawCircle(center, radius, paint);
+    }
+
+    // Draw spokes
+    for (int i = 0; i < 12; i++) {
+      final angle = (i * 30) * 3.14159 / 180;
+      final dx = maxRadius * 0.9 * cos(angle);
+      final dy = maxRadius * 0.9 * sin(angle);
+      canvas.drawLine(center, Offset(center.dx + dx, center.dy + dy), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 // ==================== ADMIN HOME SCREEN ====================
@@ -338,11 +620,11 @@ class _AdminHomeScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   colors: [
-                    Color(0xFF5FA4ED),
-                    Color(0xFF7BB8F0),
-                    Color(0xFF3A7CBD),
+                    const Color(0xFF5FA4ED),
+                    const Color(0xFF7BB8F0),
+                    const Color(0xFF3A7CBD),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -395,7 +677,6 @@ class _AdminHomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Shiny line
                   Positioned(
                     top: 0,
                     left: -50,
@@ -415,7 +696,6 @@ class _AdminHomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Content
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -485,7 +765,6 @@ class _AdminHomeScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      // Stats Row
                       Row(
                         children: [
                           _buildStatItem(
@@ -544,22 +823,20 @@ class _AdminHomeScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ==================== USERS CARD (NEW) ====================
+            // ==================== USERS CARD ====================
             GestureDetector(
               onTap: () {
-                // Navigate to Users tab
-                final parent =
-                    context.findAncestorStateOfType<_AdminDashboardState>();
+                final parent = context.findAncestorStateOfType<_AdminDashboardState>();
                 if (parent != null) {
                   parent.setState(() {
-                    parent._currentIndex = 4; // Users tab index
+                    parent._currentIndex = 4;
                   });
                 }
               },
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     colors: [
                       AppConstants.primaryColor,
                       AppConstants.primaryLight,
@@ -613,8 +890,7 @@ class _AdminHomeScreen extends StatelessWidget {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              _buildUserChip(
-                                  'Students', totalStudents, Colors.white),
+                              _buildUserChip('Students', totalStudents, Colors.white),
                               const SizedBox(width: 8),
                               _buildUserChip('Staff', totalStaff, Colors.white),
                             ],
@@ -641,7 +917,7 @@ class _AdminHomeScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // ==================== QUICK ACTIONS (Modern Grid) ====================
+            // ==================== QUICK ACTIONS ====================
             const Text(
               'Quick Actions',
               style: TextStyle(
@@ -708,18 +984,18 @@ class _AdminHomeScreen extends StatelessWidget {
                 ),
                 _buildQuickAction(
                   context,
-                  'Add Student',
-                  Icons.person_add_outlined,
-                  _navigateToUsers,
-                  const Color(0xFF2ECC71),
+                  'More',
+                  Icons.more_horiz,
+                  _navigateToMore,
+                  const Color(0xFF9B59B6),
                   null,
                 ),
                 _buildQuickAction(
                   context,
-                  'Add Staff',
-                  Icons.person_add_alt_1_outlined,
-                  _navigateToUsers,
-                  const Color(0xFFF39C12),
+                  'Logout',
+                  Icons.logout_outlined,
+                  _showLogoutAction,
+                  const Color(0xFFE74C3C),
                   null,
                 ),
               ],
@@ -730,11 +1006,10 @@ class _AdminHomeScreen extends StatelessWidget {
             // ==================== PENDING REPORTS CARD ====================
             GestureDetector(
               onTap: () {
-                final parent =
-                    context.findAncestorStateOfType<_AdminDashboardState>();
+                final parent = context.findAncestorStateOfType<_AdminDashboardState>();
                 if (parent != null) {
                   parent.setState(() {
-                    parent._currentIndex = 3; // Reports tab
+                    parent._currentIndex = 3;
                   });
                 }
               },
@@ -855,7 +1130,7 @@ class _AdminHomeScreen extends StatelessWidget {
                             const SizedBox(width: 8),
                             _buildInfoChip('Firestore'),
                             const SizedBox(width: 8),
-                            _buildInfoChip('$activeDepartments Depts'),
+                            _buildInfoChip('${activeDepartments} Depts'),
                           ],
                         ),
                       ],
@@ -867,7 +1142,6 @@ class _AdminHomeScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Footer
             Center(
               child: Text(
                 '© ${DateTime.now().year} NIT Emergency Report System',
@@ -885,8 +1159,7 @@ class _AdminHomeScreen extends StatelessWidget {
   }
 
   // ==================== Helper Methods ====================
-  Widget _buildStatItem(
-      String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -926,8 +1199,7 @@ class _AdminHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickStat(
-      String label, String value, IconData icon, Color color) {
+  Widget _buildQuickStat(String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -1099,34 +1371,56 @@ class _AdminHomeScreen extends StatelessWidget {
     );
   }
 
-  void _navigateToUsers(BuildContext context, int? _) {
-    // Navigate to Users tab
-    final parent = context.findAncestorStateOfType<_AdminDashboardState>();
-    if (parent != null) {
-      parent.setState(() {
-        parent._currentIndex = 4; // Users tab
-      });
-    }
+  void _navigateToMore(BuildContext context, int? _) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MorePage(),
+      ),
+    );
+  }
+
+  void _showLogoutAction(BuildContext context, int? _) {
+    _showLogoutDialog(context);
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Logout', style: TextStyle(fontSize: 16)),
+        content: const Text(
+          'Are you sure you want to logout?',
+          style: TextStyle(fontSize: 12),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(fontSize: 12)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Provider.of<AuthProvider>(context, listen: false).logout();
+              Navigator.pushReplacementNamed(context, '/');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppConstants.errorColor,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Logout', style: TextStyle(fontSize: 12)),
+          ),
+        ],
+      ),
+    );
   }
 
   // ==================== Date Helpers ====================
   String _getTodayDate() {
     final now = DateTime.now();
     final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${days[now.weekday - 1]}, ${now.day} ${months[now.month - 1]}';
   }
 

@@ -361,10 +361,10 @@ class ReportRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  Future<void> submitReport(ReportModel report) async {
-    await _firestore.collection(AppConstants.reportsCollection).add(
-          report.toFirestore(),
-        );
+  Future<DocumentReference> submitReport(ReportModel report) async {
+    return await _firestore
+        .collection(AppConstants.reportsCollection)
+        .add(report.toFirestore());
   }
 
   Future<String> uploadAttachment(File file) async {
@@ -468,4 +468,16 @@ class StaffData {
     required this.departmentCode,
     required this.year,
   });
+}
+
+// lib/repositories.dart – add this class
+
+class NotificationRepository {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> addNotification(NotificationModel notification) async {
+    await _firestore
+        .collection(AppConstants.notificationsCollection)
+        .add(notification.toFirestore());
+  }
 }

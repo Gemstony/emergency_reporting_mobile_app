@@ -9,20 +9,20 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   try {
     // Initialize Firebase with proper options
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    
+
     print('✅ Firebase initialized successfully!');
   } catch (e) {
     print('❌ Firebase initialization error: $e');
   }
-  
+
   final prefs = await SharedPreferences.getInstance();
-  
+
   runApp(
     MultiProvider(
       providers: [
@@ -31,6 +31,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AdminProvider()),
         ChangeNotifierProvider(create: (_) => StudentProvider()),
         ChangeNotifierProvider(create: (_) => StaffProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: MyApp(prefs: prefs),
     ),

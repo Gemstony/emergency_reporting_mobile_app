@@ -84,22 +84,22 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
     final filteredStudents = students.where((user) {
       if (_searchQuery.isEmpty) return true;
       return user.fullName.toLowerCase().contains(_searchQuery) ||
-             user.regNo.toLowerCase().contains(_searchQuery) ||
-             user.email.toLowerCase().contains(_searchQuery);
+          user.regNo.toLowerCase().contains(_searchQuery) ||
+          user.email.toLowerCase().contains(_searchQuery);
     }).toList();
 
     final filteredStaff = staff.where((user) {
       if (_searchQuery.isEmpty) return true;
       return user.fullName.toLowerCase().contains(_searchQuery) ||
-             user.regNo.toLowerCase().contains(_searchQuery) ||
-             user.email.toLowerCase().contains(_searchQuery);
+          user.regNo.toLowerCase().contains(_searchQuery) ||
+          user.email.toLowerCase().contains(_searchQuery);
     }).toList();
 
     final filteredAdmins = admins.where((user) {
       if (_searchQuery.isEmpty) return true;
       return user.fullName.toLowerCase().contains(_searchQuery) ||
-             user.regNo.toLowerCase().contains(_searchQuery) ||
-             user.email.toLowerCase().contains(_searchQuery);
+          user.regNo.toLowerCase().contains(_searchQuery) ||
+          user.email.toLowerCase().contains(_searchQuery);
     }).toList();
 
     return Scaffold(
@@ -131,7 +131,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
               children: [
                 // ===== HEADER ROW =====
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: Row(
                     children: [
                       const Text(
@@ -153,7 +154,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         onPressed: () async {
-                          final provider = Provider.of<AdminProvider>(context, listen: false);
+                          final provider = Provider.of<AdminProvider>(context,
+                              listen: false);
                           await _loadAllData(provider);
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -170,7 +172,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                 ),
                 // ===== SEARCH BAR =====
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                   child: Container(
                     height: 20,
                     decoration: BoxDecoration(
@@ -204,7 +207,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                                 color: Colors.grey[400],
                               ),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 2),
+                              contentPadding:
+                                  const EdgeInsets.symmetric(vertical: 2),
                               isDense: true,
                             ),
                           ),
@@ -296,7 +300,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
             ),
             const SizedBox(height: 14),
             Text(
-              _searchQuery.isNotEmpty 
+              _searchQuery.isNotEmpty
                   ? 'No ${_roleName(role).toLowerCase()} found'
                   : 'No ${_roleName(role)} Registered',
               style: TextStyle(
@@ -417,19 +421,22 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                     Icon(
                       Icons.badge,
                       size: 10,
-                      color: user.isActive ? Colors.grey[500] : Colors.grey[400],
+                      color:
+                          user.isActive ? Colors.grey[500] : Colors.grey[400],
                     ),
                     const SizedBox(width: 3),
                     Text(
                       user.regNo,
                       style: TextStyle(
                         fontSize: 10,
-                        color: user.isActive ? Colors.grey[500] : Colors.grey[400],
+                        color:
+                            user.isActive ? Colors.grey[500] : Colors.grey[400],
                       ),
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 1),
                       decoration: BoxDecoration(
                         color: AppConstants.primaryColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(6),
@@ -445,7 +452,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 1),
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(6),
@@ -461,7 +469,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                     ),
                     if (isFirstAdmin)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 1),
                         decoration: BoxDecoration(
                           color: Colors.amber.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(6),
@@ -480,7 +489,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                 if (!user.isActive)
                   Container(
                     margin: const EdgeInsets.only(top: 2),
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                     decoration: BoxDecoration(
                       color: Colors.red.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -543,9 +553,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                 ),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
-                onPressed: isFirstAdmin 
-                    ? null 
-                    : () => _confirmDeleteUser(user),
+                onPressed: isFirstAdmin ? null : () => _confirmDeleteUser(user),
               ),
             ],
           ),
@@ -558,7 +566,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
   Future<void> _resetPassword(UserModel user) async {
     // Generate password: lastname@2026 (fixed year)
     final String password = '${user.lastName.toLowerCase()}@2026';
-    
+
     // Show confirmation dialog
     final confirm = await showDialog<bool>(
       context: context,
@@ -702,7 +710,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
               child: const Text('Cancel', style: TextStyle(fontSize: 12))),
           ElevatedButton(
             onPressed: () async {
-              final provider = Provider.of<AdminProvider>(context, listen: false);
+              final provider =
+                  Provider.of<AdminProvider>(context, listen: false);
               Map<String, dynamic> data = {
                 'firstName': firstNameController.text.trim(),
                 'middleName': middleNameController.text.trim(),
@@ -767,12 +776,13 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
             onPressed: () async {
               // Close dialog immediately
               Navigator.pop(context);
-              
-              final provider = Provider.of<AdminProvider>(context, listen: false);
+
+              final provider =
+                  Provider.of<AdminProvider>(context, listen: false);
               bool success = await provider.deleteUser(user.id);
-              
+
               if (!mounted) return;
-              
+
               if (success) {
                 // Refresh data immediately to remove user from list
                 await _loadAllData(provider);
@@ -815,13 +825,16 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
           final adminProvider = Provider.of<AdminProvider>(context);
-          final departments = adminProvider.departments.where((d) => d.isActive).toList();
+          final departments =
+              adminProvider.departments.where((d) => d.isActive).toList();
           final courses = adminProvider.allCourses
-              .where((c) => c.departmentId == selectedDepartmentId && c.isActive)
+              .where(
+                  (c) => c.departmentId == selectedDepartmentId && c.isActive)
               .toList();
 
           return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: const Text('Register Student',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             content: SingleChildScrollView(
@@ -842,12 +855,14 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                       labelText: 'Department *',
                       labelStyle: TextStyle(fontSize: 12),
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                     items: departments.map((d) {
                       return DropdownMenuItem(
                         value: d.id,
-                        child: Text(d.name, style: const TextStyle(fontSize: 12)),
+                        child:
+                            Text(d.name, style: const TextStyle(fontSize: 12)),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -865,15 +880,18 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                       labelText: 'Course *',
                       labelStyle: TextStyle(fontSize: 12),
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                     items: courses.map((c) {
                       return DropdownMenuItem(
                         value: c.id,
-                        child: Text(c.name, style: const TextStyle(fontSize: 12)),
+                        child:
+                            Text(c.name, style: const TextStyle(fontSize: 12)),
                       );
                     }).toList(),
-                    onChanged: (value) => setState(() => selectedCourseId = value),
+                    onChanged: (value) =>
+                        setState(() => selectedCourseId = value),
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
@@ -883,13 +901,15 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                       labelText: 'Year *',
                       labelStyle: TextStyle(fontSize: 12),
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                     items: List.generate(7, (i) {
                       int year = DateTime.now().year + i;
                       return DropdownMenuItem(
                           value: year.toString(),
-                          child: Text(year.toString(), style: const TextStyle(fontSize: 12)));
+                          child: Text(year.toString(),
+                              style: const TextStyle(fontSize: 12)));
                     }),
                     onChanged: (value) => setState(() => selectedYear = value!),
                   ),
@@ -915,13 +935,14 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                     );
                     return;
                   }
-                  final provider = Provider.of<AdminProvider>(context, listen: false);
+                  final provider =
+                      Provider.of<AdminProvider>(context, listen: false);
                   final course = provider.allCourses
                       .firstWhere((c) => c.id == selectedCourseId);
-                  
+
                   // Get the next sequence number for student
                   final nextSeq = await provider.getNextSequence('student');
-                  
+
                   final student = StudentData(
                     firstName: firstNameCtrl.text.trim(),
                     middleName: middleNameCtrl.text.trim(),
@@ -933,7 +954,13 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                     courseCode: course.code,
                     year: int.parse(selectedYear),
                   );
-                  String? regNo = await provider.registerStudent(student);
+                  // Inside _showRegisterStudentDialog, after building the student object:
+                  final authProvider =
+                      Provider.of<AuthProvider>(context, listen: false);
+                  final adminId = authProvider.currentUser?.id;
+
+                  String? regNo =
+                      await provider.registerStudent(student, adminId: adminId);
                   if (!mounted) return;
                   if (regNo != null) {
                     // Refresh data to show new student
@@ -973,10 +1000,12 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
           final adminProvider = Provider.of<AdminProvider>(context);
-          final departments = adminProvider.departments.where((d) => d.isActive).toList();
+          final departments =
+              adminProvider.departments.where((d) => d.isActive).toList();
 
           return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: const Text('Register Staff',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             content: SingleChildScrollView(
@@ -997,15 +1026,18 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                       labelText: 'Department *',
                       labelStyle: TextStyle(fontSize: 12),
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                     items: departments.map((d) {
                       return DropdownMenuItem(
                         value: d.id,
-                        child: Text(d.name, style: const TextStyle(fontSize: 12)),
+                        child:
+                            Text(d.name, style: const TextStyle(fontSize: 12)),
                       );
                     }).toList(),
-                    onChanged: (value) => setState(() => selectedDepartmentId = value),
+                    onChanged: (value) =>
+                        setState(() => selectedDepartmentId = value),
                   ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
@@ -1015,13 +1047,15 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                       labelText: 'Year *',
                       labelStyle: TextStyle(fontSize: 12),
                       border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                     items: List.generate(7, (i) {
                       int year = DateTime.now().year + i;
                       return DropdownMenuItem(
                           value: year.toString(),
-                          child: Text(year.toString(), style: const TextStyle(fontSize: 12)));
+                          child: Text(year.toString(),
+                              style: const TextStyle(fontSize: 12)));
                     }),
                     onChanged: (value) => setState(() => selectedYear = value!),
                   ),
@@ -1046,10 +1080,11 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                     );
                     return;
                   }
-                  final provider = Provider.of<AdminProvider>(context, listen: false);
+                  final provider =
+                      Provider.of<AdminProvider>(context, listen: false);
                   final dept = provider.departments
                       .firstWhere((d) => d.id == selectedDepartmentId);
-                  
+
                   final staff = StaffData(
                     firstName: firstNameCtrl.text.trim(),
                     middleName: middleNameCtrl.text.trim(),
@@ -1060,7 +1095,11 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                     departmentCode: dept.code,
                     year: int.parse(selectedYear),
                   );
-                  String? regNo = await provider.registerStaff(staff);
+                  final authProvider =
+                      Provider.of<AuthProvider>(context, listen: false);
+                  final adminId = authProvider.currentUser?.id;
+                  String? regNo =
+                      await provider.registerStaff(staff, adminId: adminId);
                   if (!mounted) return;
                   if (regNo != null) {
                     // Refresh data to show new staff
@@ -1096,81 +1135,124 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Register Admin',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildTextField(firstNameCtrl, 'First Name *'),
-              _buildTextField(middleNameCtrl, 'Middle Name'),
-              _buildTextField(lastNameCtrl, 'Last Name *'),
-              _buildTextField(emailCtrl, 'Email *',
-                  keyboardType: TextInputType.emailAddress),
-              _buildTextField(phoneCtrl, 'Phone *',
-                  keyboardType: TextInputType.phone),
-              _buildTextField(passwordCtrl, 'Password *', obscureText: true),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(fontSize: 12))),
-          ElevatedButton(
-            onPressed: () async {
-              if (firstNameCtrl.text.isEmpty ||
-                  lastNameCtrl.text.isEmpty ||
-                  emailCtrl.text.isEmpty ||
-                  phoneCtrl.text.isEmpty ||
-                  passwordCtrl.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Please fill all required fields'),
-                      backgroundColor: AppConstants.errorColor),
-                );
-                return;
-              }
-              
-              final provider = Provider.of<AdminProvider>(context, listen: false);
-              
-              // Get the next sequence number for admin
-              final nextSeq = await provider.getNextSequence('admin');
-              
-              // Generate regNo for admin with sequence
-              final generatedRegNo = 'NIT/ADMIN/${DateTime.now().year}/${nextSeq.toString().padLeft(4, '0')}';
+      barrierDismissible:
+          false, // 👈 set false so user can't dismiss while loading
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          bool _isRegistering = false; // 👈 defined inside builder
 
-              final String? registeredRegNo = await provider.registerAdmin({
-                'firstName': firstNameCtrl.text.trim(),
-                'middleName': middleNameCtrl.text.trim(),
-                'lastName': lastNameCtrl.text.trim(),
-                'email': emailCtrl.text.trim(),
-                'phone': phoneCtrl.text.trim(),
-                'password': passwordCtrl.text.trim(),
-                'regNo': generatedRegNo,
-                'sequence': nextSeq,
-              });
-              if (!mounted) return;
-              if (registeredRegNo != null) {
-                // Refresh data to show new admin
-                await _loadAllData(provider);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content:
-                          Text('Admin registered successfully! RegNo: $registeredRegNo'),
-                      backgroundColor: AppConstants.successColor),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppConstants.primaryColor,
-                foregroundColor: Colors.white),
-            child: const Text('Register', style: TextStyle(fontSize: 12)),
-          ),
-        ],
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text(
+              'Register Admin',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildTextField(firstNameCtrl, 'First Name'),
+                  _buildTextField(middleNameCtrl, 'Middle Name'),
+                  _buildTextField(lastNameCtrl, 'Last Name'),
+                  _buildTextField(emailCtrl, 'Email',
+                      keyboardType: TextInputType.emailAddress),
+                  _buildTextField(phoneCtrl, 'Phone Number',
+                      keyboardType: TextInputType.phone),
+                  _buildTextField(passwordCtrl, 'Password', obscureText: true),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: _isRegistering ? null : () => Navigator.pop(context),
+                child: const Text('Cancel', style: TextStyle(fontSize: 12)),
+              ),
+              ElevatedButton(
+                onPressed: _isRegistering
+                    ? null
+                    : () async {
+                        // Validate fields
+                        if (firstNameCtrl.text.isEmpty ||
+                            lastNameCtrl.text.isEmpty ||
+                            emailCtrl.text.isEmpty ||
+                            phoneCtrl.text.isEmpty ||
+                            passwordCtrl.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please fill all required fields'),
+                              backgroundColor: AppConstants.errorColor,
+                            ),
+                          );
+                          return;
+                        }
+
+                        final provider =
+                            Provider.of<AdminProvider>(context, listen: false);
+                        final authProvider =
+                            Provider.of<AuthProvider>(context, listen: false);
+                        final adminId =
+                            authProvider.currentUser?.id; // current admin ID
+
+                        // Get next sequence number
+                        final nextSeq = await provider.getNextSequence('admin');
+
+                        // Generate regNo
+                        final generatedRegNo =
+                            'NIT/ADMIN/${DateTime.now().year}/${nextSeq.toString().padLeft(4, '0')}';
+
+                        setState(() => _isRegistering = true);
+
+                        final String? registeredRegNo =
+                            await provider.registerAdmin(
+                          {
+                            'firstName': firstNameCtrl.text.trim(),
+                            'middleName': middleNameCtrl.text.trim(),
+                            'lastName': lastNameCtrl.text.trim(),
+                            'email': emailCtrl.text.trim(),
+                            'phone': phoneCtrl.text.trim(),
+                            'password': passwordCtrl.text.trim(),
+                            'regNo': generatedRegNo,
+                            'sequence': nextSeq,
+                          },
+                          adminId: adminId, // 👈 pass adminId for notification
+                        );
+
+                        setState(() => _isRegistering = false);
+
+                        if (!mounted) return;
+                        if (registeredRegNo != null) {
+                          await _loadAllData(provider);
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Admin registered! RegNo: $registeredRegNo',
+                              ),
+                              backgroundColor: AppConstants.successColor,
+                            ),
+                          );
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppConstants.primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: _isRegistering
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text('Register', style: TextStyle(fontSize: 12)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -1189,7 +1271,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
           labelText: label,
           labelStyle: const TextStyle(fontSize: 12),
           border: const OutlineInputBorder(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
       ),
     );

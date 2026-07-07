@@ -373,7 +373,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                               userAgentPackageName:
                                   'com.nit.emergency_report_system',
                               tileProvider:
-                                  CancellableNetworkTileProvider(), // 👈 add this line
+                                  CancellableNetworkTileProvider(), 
                             ),
                             MarkerLayer(
                               markers: [

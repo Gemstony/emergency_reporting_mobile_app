@@ -51,35 +51,36 @@ class AuthProvider extends ChangeNotifier {
   // lib/providers.dart (inside AuthProvider class)
 
 // Check if user is already logged in (called on app start)
-Future<bool> checkAuthStatus() async {
-  final isLoggedIn = await SessionManager.isLoggedIn();
-  if (!isLoggedIn) return false;
+  Future<bool> checkAuthStatus() async {
+    final isLoggedIn = await SessionManager.isLoggedIn();
+    if (!isLoggedIn) return false;
 
-  try {
-    final userId = await SessionManager.getUserId();
-    if (userId == null) return false;
+    try {
+      final userId = await SessionManager.getUserId();
+      if (userId == null) return false;
 
-    // Fetch user data from Firestore using userId
-    final user = await _repository.getUserById(userId);
-    if (user != null) {
-      _currentUser = user;
-      notifyListeners();
-      return true;
+      // Fetch user data from Firestore using userId
+      final user = await _repository.getUserById(userId);
+      if (user != null) {
+        _currentUser = user;
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
     }
-    return false;
-  } catch (e) {
-    return false;
   }
-}
 
-Future<void> logout() async {
-  await _repository.logout();
-  await SessionManager.logout();
-  _currentUser = null;
-  notifyListeners();
-}
+  Future<void> logout() async {
+    await _repository.logout();
+    await SessionManager.logout();
+    _currentUser = null;
+    notifyListeners();
+  }
 
-  Future<bool> resetPassword(String email, String phone, String newPassword) async {
+  Future<bool> resetPassword(
+      String email, String phone, String newPassword) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -124,7 +125,9 @@ Future<void> logout() async {
     } else if (e is Exception) {
       // Any other exception
       final msg = e.toString();
-      if (msg.contains('network') || msg.contains('Connection') || msg.contains('timeout')) {
+      if (msg.contains('network') ||
+          msg.contains('Connection') ||
+          msg.contains('timeout')) {
         return 'Network error. Please check your internet connection.';
       }
       return 'An error occurred. Please try again.';
@@ -157,6 +160,7 @@ class ReportProvider extends ChangeNotifier {
       notifyListeners();
     });
   }
+// In ReportProvider
 
   Future<bool> submitReport(ReportModel report) async {
     _isLoading = true;
@@ -164,7 +168,43 @@ class ReportProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _repository.submitReport(report);
+      final docRef = await _repository.submitReport(report);
+      // After success, add notifications
+      final notificationRepo = NotificationRepository();
+
+      // Notification for the reporter (student)
+      await notificationRepo.addNotification(
+        NotificationModel(
+          id: '',
+          type: 'report',
+          title: 'Report Submitted',
+          message:
+              'Your report "${report.title}" has been submitted successfully.',
+          source: 'student',
+          destination: report.reporterId,
+          createdAt: DateTime.now(),
+          relatedId: docRef.id,
+          reporterRegNo: report.reporterRegNo,
+          departmentId: report.targetDepartmentId,
+        ),
+      );
+
+      // Notification for the department (staff)
+      await notificationRepo.addNotification(
+        NotificationModel(
+          id: '',
+          type: 'report',
+          title: 'New Report Received',
+          message: 'New report "${report.title}" from ${report.reporterRegNo}',
+          source: 'student',
+          destination: report.targetDepartmentId,
+          createdAt: DateTime.now(),
+          relatedId: docRef.id,
+          reporterRegNo: report.reporterRegNo,
+          departmentId: report.targetDepartmentId,
+        ),
+      );
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -176,10 +216,6 @@ class ReportProvider extends ChangeNotifier {
     }
   }
 
-  Future<String> uploadAttachment(File file) async {
-    return await _repository.uploadAttachment(file);
-  }
-
   Future<bool> updateReportStatus(
       String reportId, String status, String response) async {
     _isLoading = true;
@@ -188,6 +224,26 @@ class ReportProvider extends ChangeNotifier {
 
     try {
       await _repository.updateReportStatus(reportId, status, response);
+      // After success, add notification for the reporter
+      final report = _reports.firstWhere((r) => r.id == reportId);
+      final notificationRepo = NotificationRepository();
+
+      await notificationRepo.addNotification(
+        NotificationModel(
+          id: '',
+          type: 'report',
+          title: 'Report Updated',
+          message:
+              'Your report "${report.title}" has been updated to ${_getStatusLabel(status)}.',
+          source: 'staff',
+          destination: report.reporterId,
+          createdAt: DateTime.now(),
+          relatedId: reportId,
+          reporterRegNo: report.reporterRegNo,
+          departmentId: report.targetDepartmentId,
+        ),
+      );
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -196,6 +252,19 @@ class ReportProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  String _getStatusLabel(String status) {
+    switch (status) {
+      case 'pending':
+        return 'Pending';
+      case 'in-progress':
+        return 'In Progress';
+      case 'resolved':
+        return 'Resolved';
+      default:
+        return status;
     }
   }
 
@@ -239,38 +308,52 @@ class AdminProvider extends ChangeNotifier {
   List<UserModel> get admins => _admins; // define _admins list at top
   List<UserModel> _admins = [];
 
-// Add this method to load admins
-Future<void> loadAdmins() async {
-  _isLoading = true;
-  _error = null;
-  notifyListeners();
-
-  try {
-    _admins = await _repository.getUsersByRole(AppConstants.roleAdmin);
-    print('✅ Admins loaded: ${_admins.length}');  // 👈 debug
-    _isLoading = false;
-    notifyListeners();
-  } catch (e) {
-    _error = e.toString();
-    _isLoading = false;
-    notifyListeners();
-    print('❌ Error loading admins: $e');
+  Future<int> getNextSequence(String type) async {
+    final counterRef = _firestore
+        .collection(AppConstants.countersCollection)
+        .doc('regCounter');
+    final snapshot = await counterRef.get();
+    final key = type; // 'admin', 'student', 'staff'
+    int current = 0;
+    if (snapshot.exists) {
+      final data = snapshot.data() as Map<String, dynamic>;
+      current = data[key] ?? 0;
+    }
+    final next = current + 1;
+    await counterRef.set({key: next}, SetOptions(merge: true));
+    return next;
   }
-}
 
-// Add a method to register admin (optional)
-  Future<String?> registerAdmin(Map<String, dynamic> adminData) async {
+// Add this method to load admins
+  Future<void> loadAdmins() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      // Generate regNo: NIT/ADMIN/YYYY/XXXX
-      // You need a counter for admin as well, or use a simple timestamp.
-      // For simplicity, we'll generate a random number.
+      _admins = await _repository.getUsersByRole(AppConstants.roleAdmin);
+      print('✅ Admins loaded: ${_admins.length}'); // 👈 debug
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      print('❌ Error loading admins: $e');
+    }
+  }
+
+// ==================== ADMIN REGISTRATION ====================
+  Future<String?> registerAdmin(Map<String, dynamic> adminData,
+      {String? adminId}) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      // Generate regNo
       String regNo =
           'NIT/ADMIN/${DateTime.now().year}/${DateTime.now().millisecondsSinceEpoch}';
-      // Truncate to keep consistent format
       regNo = regNo.substring(0, 18);
 
       // Store in Firestore
@@ -281,13 +364,32 @@ Future<void> loadAdmins() async {
         'status': AppConstants.statusActive,
         'createdAt': FieldValue.serverTimestamp(),
       });
-      // Also create Firebase Auth user with the provided password
-      // adminData should contain 'email' and 'password'
+      // Create Firebase Auth user
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: adminData['email'],
         password: adminData['password'],
       );
       await loadAdmins();
+
+      // Notify the admin who performed the action (if any)
+      if (adminId != null) {
+        final notificationRepo = NotificationRepository();
+        await notificationRepo.addNotification(
+          NotificationModel(
+            id: '',
+            type: 'user',
+            title: 'Admin Registered',
+            message:
+                'Admin ${adminData['firstName']} ${adminData['lastName']} ($regNo) has been added.',
+            source: 'staff',
+            destination: adminId,
+            createdAt: DateTime.now(),
+            relatedId: regNo,
+            reporterRegNo: regNo,
+          ),
+        );
+      }
+
       _isLoading = false;
       notifyListeners();
       return regNo;
@@ -535,7 +637,10 @@ Future<void> loadAdmins() async {
     }
   }
 
-  Future<String?> registerStudent(StudentData student) async {
+  // In AdminProvider
+// ==================== STUDENT REGISTRATION ====================
+  Future<String?> registerStudent(StudentData student,
+      {String? adminId}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -543,6 +648,26 @@ Future<void> loadAdmins() async {
     try {
       String regNo = await _repository.registerStudent(student);
       await loadStudents();
+
+      // Notify the admin (if adminId is provided)
+      if (adminId != null) {
+        final notificationRepo = NotificationRepository();
+        await notificationRepo.addNotification(
+          NotificationModel(
+            id: '',
+            type: 'user',
+            title: 'Student Registered',
+            message:
+                'Student ${student.firstName} ${student.lastName} ($regNo) has been registered.',
+            source: 'staff',
+            destination: adminId,
+            createdAt: DateTime.now(),
+            relatedId: regNo,
+            reporterRegNo: regNo,
+          ),
+        );
+      }
+
       _isLoading = false;
       notifyListeners();
       return regNo;
@@ -554,7 +679,8 @@ Future<void> loadAdmins() async {
     }
   }
 
-  Future<String?> registerStaff(StaffData staff) async {
+// ==================== STAFF REGISTRATION ====================
+  Future<String?> registerStaff(StaffData staff, {String? adminId}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -562,6 +688,26 @@ Future<void> loadAdmins() async {
     try {
       String regNo = await _repository.registerStaff(staff);
       await loadStaff();
+
+      // Notify the admin
+      if (adminId != null) {
+        final notificationRepo = NotificationRepository();
+        await notificationRepo.addNotification(
+          NotificationModel(
+            id: '',
+            type: 'user',
+            title: 'Staff Registered',
+            message:
+                'Staff ${staff.firstName} ${staff.lastName} ($regNo) has been registered.',
+            source: 'staff',
+            destination: adminId,
+            createdAt: DateTime.now(),
+            relatedId: regNo,
+            reporterRegNo: regNo,
+          ),
+        );
+      }
+
       _isLoading = false;
       notifyListeners();
       return regNo;
@@ -648,4 +794,99 @@ class StaffProvider extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   String? get error => _error;
+}
+
+// lib/providers.dart – add this class
+
+class NotificationProvider extends ChangeNotifier {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<NotificationModel> _notifications = [];
+  bool _isLoading = false;
+  String? _error;
+
+  List<NotificationModel> get notifications => _notifications;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
+  // Listen to notifications for a specific destination
+  void listenToNotifications(String destination) {
+    _isLoading = true;
+    notifyListeners();
+    print('🔔 listenToNotifications called with destination: $destination');
+
+    _firestore
+        .collection(AppConstants.notificationsCollection)
+        .where('destination', isEqualTo: destination)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .listen((snapshot) {
+      print(
+          '📦 Received ${snapshot.docs.length} notifications for destination: $destination');
+      _notifications = snapshot.docs
+          .map((doc) => NotificationModel.fromFirestore(doc))
+          .toList();
+      _isLoading = false;
+      notifyListeners();
+    }, onError: (error) {
+      print('❌ Error in listenToNotifications: $error');
+      _error = error.toString();
+      _isLoading = false;
+      notifyListeners();
+    });
+  }
+
+  Future<void> markAsRead(String notificationId) async {
+    try {
+      await _firestore
+          .collection(AppConstants.notificationsCollection)
+          .doc(notificationId)
+          .update({'isRead': true});
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  Future<void> markAllAsRead(String destination) async {
+    try {
+      final batch = _firestore.batch();
+      final snapshot = await _firestore
+          .collection(AppConstants.notificationsCollection)
+          .where('destination', isEqualTo: destination)
+          .where('isRead', isEqualTo: false)
+          .get();
+      for (var doc in snapshot.docs) {
+        batch.update(doc.reference, {'isRead': true});
+      }
+      await batch.commit();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  // lib/providers.dart – inside NotificationProvider
+  void listenToAllNotifications() {
+    _isLoading = true;
+    notifyListeners();
+    print('🔔 listenToAllNotifications called');
+
+    _firestore
+        .collection(AppConstants.notificationsCollection)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .listen((snapshot) {
+      print('📦 Received ${snapshot.docs.length} notifications (all)');
+      _notifications = snapshot.docs
+          .map((doc) => NotificationModel.fromFirestore(doc))
+          .toList();
+      _isLoading = false;
+      notifyListeners();
+    }, onError: (error) {
+      print('❌ Error in listenToAllNotifications: $error');
+      _error = error.toString();
+      _isLoading = false;
+      notifyListeners();
+    });
+  }
 }

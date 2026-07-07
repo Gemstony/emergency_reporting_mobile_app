@@ -273,3 +273,65 @@ class CounterModel {
     );
   }
 }
+
+// lib/models.dart – add this class
+
+class NotificationModel {
+  final String id;
+  final String type; // 'report' or 'user'
+  final String title;
+  final String message;
+  final String source; // 'student' or 'staff'
+  final String? destination; // user ID or department ID
+  final bool isRead;
+  final DateTime createdAt;
+  final String? relatedId; // report ID or user ID
+  final String? reporterRegNo; // for report type
+  final String? departmentId; // for report type
+
+  NotificationModel({
+    required this.id,
+    required this.type,
+    required this.title,
+    required this.message,
+    required this.source,
+    this.destination,
+    this.isRead = false,
+    required this.createdAt,
+    this.relatedId,
+    this.reporterRegNo,
+    this.departmentId,
+  });
+
+  factory NotificationModel.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return NotificationModel(
+      id: doc.id,
+      type: data['type'] ?? '',
+      title: data['title'] ?? '',
+      message: data['message'] ?? '',
+      source: data['source'] ?? '',
+      destination: data['destination'],
+      isRead: data['isRead'] ?? false,
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      relatedId: data['relatedId'],
+      reporterRegNo: data['reporterRegNo'],
+      departmentId: data['departmentId'],
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      'type': type,
+      'title': title,
+      'message': message,
+      'source': source,
+      'destination': destination,
+      'isRead': isRead,
+      'createdAt': FieldValue.serverTimestamp(),
+      'relatedId': relatedId,
+      'reporterRegNo': reporterRegNo,
+      'departmentId': departmentId,
+    };
+  }
+}

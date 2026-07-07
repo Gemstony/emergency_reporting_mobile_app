@@ -381,10 +381,11 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     initialValue: _selectedStatus,
-                    style: const TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12, color: Colors.black),
                     decoration: InputDecoration(
                       labelText: 'Status',
-                      labelStyle: const TextStyle(fontSize: 12),
+                      labelStyle:
+                          const TextStyle(fontSize: 12, color: Colors.black),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -502,7 +503,6 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
             backgroundColor: AppConstants.successColor,
           ),
         );
-        Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

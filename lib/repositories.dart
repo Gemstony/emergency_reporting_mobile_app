@@ -38,8 +38,6 @@ class AuthRepository {
           .where('regNo', isEqualTo: regNo)
           .limit(1)
           .get();
-      print("=======================");
-      print(userQuery.docs);
       if (userQuery.docs.isEmpty) {
         throw Exception('Username not registered');
       }

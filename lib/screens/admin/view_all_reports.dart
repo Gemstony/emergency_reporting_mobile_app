@@ -259,13 +259,13 @@ class _ViewAllReportsScreenState extends State<ViewAllReportsScreen> {
                 ),
                 if (report.location != null) ...[
                   const SizedBox(width: 12),
-                  Icon(
+                  const Icon(
                     Icons.location_on,
                     size: 12,
                     color: Colors.green,
                   ),
                   const SizedBox(width: 4),
-                  Text(
+                  const Text(
                     'Location',
                     style: TextStyle(
                       fontSize: 10,

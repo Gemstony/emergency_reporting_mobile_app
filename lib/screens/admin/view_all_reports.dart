@@ -41,13 +41,11 @@ class _ViewAllReportsScreenState extends State<ViewAllReportsScreen> {
   Widget build(BuildContext context) {
     final reportProvider = Provider.of<ReportProvider>(context);
     
-    // Filter reports based on search query and status
+    // Filter reports
     final filteredReports = reportProvider.reports.where((report) {
-      // Status filter
       if (_selectedStatus != 'all' && report.status != _selectedStatus) {
         return false;
       }
-      // Search filter
       if (_searchQuery.isNotEmpty) {
         return report.title.toLowerCase().contains(_searchQuery) ||
                report.description.toLowerCase().contains(_searchQuery) ||
@@ -84,7 +82,7 @@ class _ViewAllReportsScreenState extends State<ViewAllReportsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ===== HEADER ROW =====
+                // Header Row
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: Row(
@@ -141,11 +139,11 @@ class _ViewAllReportsScreenState extends State<ViewAllReportsScreen> {
                     ],
                   ),
                 ),
-                // ===== SEARCH BAR =====
+                // Search Bar
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                   child: Container(
-                    height: 20,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.95),
                       borderRadius: BorderRadius.circular(8),
@@ -177,7 +175,7 @@ class _ViewAllReportsScreenState extends State<ViewAllReportsScreen> {
                                 color: Colors.grey[400],
                               ),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 2),
+                              contentPadding: const EdgeInsets.symmetric(vertical: 8),
                               isDense: true,
                             ),
                           ),
@@ -200,7 +198,7 @@ class _ViewAllReportsScreenState extends State<ViewAllReportsScreen> {
                     ),
                   ),
                 ),
-                // ===== STATUS FILTER =====
+                // Status Filter
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: SizedBox(
@@ -292,14 +290,10 @@ class _ViewAllReportsScreenState extends State<ViewAllReportsScreen> {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'pending':
-        return Colors.orange;
-      case 'in-progress':
-        return Colors.blue;
-      case 'resolved':
-        return Colors.green;
-      default:
-        return Colors.grey;
+      case 'pending': return Colors.orange;
+      case 'in-progress': return Colors.blue;
+      case 'resolved': return Colors.green;
+      default: return Colors.grey;
     }
   }
 
@@ -357,192 +351,10 @@ class _ViewAllReportsScreenState extends State<ViewAllReportsScreen> {
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
-<<<<<<< HEAD
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-          border: Border.all(
-            color: categoryColor.withOpacity(0.1),
-            width: 1,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                // Category Badge
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: categoryColor.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: categoryColor.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _getCategoryIcon(report.category),
-                        size: 14,
-                        color: categoryColor,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        _getCategoryLabel(report.category),
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: categoryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                // Status Badge
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color:
-                        Utils.getStatusColor(report.status).withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    _getStatusLabel(report.status),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: Utils.getStatusColor(report.status),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Title
-            Text(
-              report.title,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 6),
-
-            // Description
-            Text(
-              report.description,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 12),
-
-            // Footer
-            Row(
-              children: [
-                Icon(
-                  Icons.person_outline,
-                  size: 12,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  report.reporterRegNo,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey[400],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Icon(
-                  Icons.calendar_today,
-                  size: 12,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  Utils.formatDate(report.createdAt),
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey[400],
-                  ),
-                ),
-                if (report.location != null) ...[
-                  const SizedBox(width: 12),
-                  const Icon(
-                    Icons.location_on,
-                    size: 12,
-                    color: Colors.green,
-                  ),
-                  const SizedBox(width: 4),
-                  const Text(
-                    'Location',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.green,
-                    ),
-                  ),
-                ],
-                const Spacer(),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppConstants.primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'View',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: AppConstants.primaryColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Icon(
-                        Icons.arrow_forward,
-                        size: 12,
-                        color: AppConstants.primaryColor,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-=======
         ],
         border: Border.all(
           color: _getStatusColor(report.status).withOpacity(0.2),
           width: 1,
->>>>>>> 989c701c095a7a861dfef06cf6dc1091972eb0c5
         ),
       ),
       child: Column(

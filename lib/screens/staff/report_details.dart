@@ -49,7 +49,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
         preferredSize: const Size.fromHeight(60),
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               colors: [
                 const Color(0xFF5FA4ED),
                 const Color(0xFF3A7CBD),
@@ -198,7 +198,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.person_outline,
                         size: 14,
                         color: Colors.white70,
@@ -206,7 +206,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                       const SizedBox(width: 4),
                       Text(
                         'Reported by: ${report.reporterRegNo}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Colors.white70,
                         ),
@@ -216,7 +216,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.calendar_today,
                         size: 14,
                         color: Colors.white70,
@@ -224,7 +224,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                       const SizedBox(width: 4),
                       Text(
                         Utils.formatDate(report.createdAt),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Colors.white70,
                         ),
@@ -233,7 +233,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                   ),
                   if (hasLocation) ...[
                     const SizedBox(height: 4),
-                    Row(
+                    const Row(
                       children: [
                         Icon(
                           Icons.location_on,
@@ -281,7 +281,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                         color: AppConstants.primaryColor,
                         size: 20,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         'Description',
                         style: TextStyle(
@@ -334,7 +334,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                           color: AppConstants.primaryColor,
                           size: 20,
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           'Location Map',
                           style: TextStyle(
@@ -461,7 +461,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                         color: AppConstants.primaryColor,
                         size: 20,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         'Your Response',
                         style: TextStyle(
@@ -496,7 +496,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                                 color: AppConstants.primaryColor,
                               ),
                               const SizedBox(width: 8),
-                              Text(
+                              const Text(
                                 'Previous Response',
                                 style: TextStyle(
                                   fontSize: 11,
@@ -563,20 +563,11 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                   const SizedBox(height: 12),
                   // Status dropdown
                   DropdownButtonFormField<String>(
-<<<<<<< HEAD
-                    initialValue: _selectedStatus,
-                    style: const TextStyle(fontSize: 12, color: Colors.black),
-                    decoration: InputDecoration(
-                      labelText: 'Status',
-                      labelStyle:
-                          const TextStyle(fontSize: 12, color: Colors.black),
-=======
                     value: _selectedStatus,
                     style: const TextStyle(fontSize: 13),
                     decoration: InputDecoration(
                       labelText: 'Update Status',
                       labelStyle: const TextStyle(fontSize: 12),
->>>>>>> 989c701c095a7a861dfef06cf6dc1091972eb0c5
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -650,7 +641,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                                     AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
-                          : Row(
+                          : const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const Icon(Icons.save_outlined, size: 20),
@@ -699,10 +690,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
             backgroundColor: AppConstants.successColor,
           ),
         );
-<<<<<<< HEAD
-=======
         Navigator.pop(context, true);
->>>>>>> 989c701c095a7a861dfef06cf6dc1091972eb0c5
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

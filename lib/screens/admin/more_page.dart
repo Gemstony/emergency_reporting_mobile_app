@@ -106,12 +106,13 @@ class MorePage extends StatelessWidget {
                     const SizedBox(height: 20),
 
                     // ===== USER MANAGEMENT SECTION =====
-                    _buildSectionHeader('User Management', Icons.people_outline),
+                    _buildSectionHeader(
+                        'User Management', Icons.people_outline),
                     const SizedBox(height: 12),
                     GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 4,
+                      crossAxisCount: 2,
                       childAspectRatio: 1.1,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
@@ -130,32 +131,19 @@ class MorePage extends StatelessWidget {
                           Colors.orange,
                           () => _showRegisterStaffPopup(context),
                         ),
-                        _buildMoreAction(
-                          context,
-                          'Add Admin',
-                          Icons.admin_panel_settings,
-                          Colors.purple,
-                          () => _navigateToTab(context, 4),
-                        ),
-                        _buildMoreAction(
-                          context,
-                          'View Users',
-                          Icons.people_outline,
-                          Colors.teal,
-                          () => _navigateToTab(context, 4),
-                        ),
                       ],
                     ),
 
                     const SizedBox(height: 20),
 
                     // ===== ACADEMIC MANAGEMENT SECTION =====
-                    _buildSectionHeader('Academic Management', Icons.school_outlined),
+                    _buildSectionHeader(
+                        'Academic Management', Icons.school_outlined),
                     const SizedBox(height: 12),
                     GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 4,
+                      crossAxisCount: 2,
                       childAspectRatio: 1.1,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
@@ -165,28 +153,14 @@ class MorePage extends StatelessWidget {
                           'Departments',
                           Icons.business_outlined,
                           Colors.teal,
-                          () => _navigateToTab(context, 1),
-                        ),
-                        _buildMoreAction(
-                          context,
-                          'Add Dept',
-                          Icons.add_business,
-                          Colors.teal,
-                          () => _navigateToTab(context, 1),
+                          () =>_navigateToDepartment(context),
                         ),
                         _buildMoreAction(
                           context,
                           'Courses',
                           Icons.book_outlined,
                           Colors.indigo,
-                          () => _navigateToTab(context, 2),
-                        ),
-                        _buildMoreAction(
-                          context,
-                          'Add Course',
-                          Icons.add,
-                          Colors.indigo,
-                          () => _navigateToTab(context, 2),
+                          () => _navigateToCourses(context),
                         ),
                       ],
                     ),
@@ -194,12 +168,13 @@ class MorePage extends StatelessWidget {
                     const SizedBox(height: 20),
 
                     // ===== REPORTS & NOTIFICATIONS SECTION =====
-                    _buildSectionHeader('Reports & Notifications', Icons.notifications_outlined),
+                    _buildSectionHeader('Reports & Notifications',
+                        Icons.notifications_outlined),
                     const SizedBox(height: 12),
                     GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 4,
+                      crossAxisCount: 2,
                       childAspectRatio: 1.1,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
@@ -209,14 +184,7 @@ class MorePage extends StatelessWidget {
                           'All Reports',
                           Icons.report_outlined,
                           Colors.red,
-                          () => _navigateToTab(context, 3),
-                        ),
-                        _buildMoreAction(
-                          context,
-                          'Pending',
-                          Icons.pending_outlined,
-                          Colors.orange,
-                          () => _navigateToTab(context, 3),
+                          () => _navigateToReports(context),
                         ),
                         _buildMoreAction(
                           context,
@@ -225,25 +193,19 @@ class MorePage extends StatelessWidget {
                           Colors.pink,
                           () => _navigateToNotifications(context),
                         ),
-                        _buildMoreAction(
-                          context,
-                          'View All',
-                          Icons.visibility_outlined,
-                          Colors.blueGrey,
-                          () => _navigateToTab(context, 3),
-                        ),
                       ],
                     ),
 
                     const SizedBox(height: 20),
 
                     // ===== SETTINGS & PROFILE SECTION =====
-                    _buildSectionHeader('Settings & Profile', Icons.settings_outlined),
+                    _buildSectionHeader(
+                        'Settings & Profile', Icons.settings_outlined),
                     const SizedBox(height: 12),
                     GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 4,
+                      crossAxisCount: 2,
                       childAspectRatio: 1.1,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
@@ -257,99 +219,12 @@ class MorePage extends StatelessWidget {
                         ),
                         _buildMoreAction(
                           context,
-                          'Settings',
-                          Icons.settings_outlined,
-                          Colors.grey,
-                          () => _showComingSoon(context, 'Settings'),
-                        ),
-                        _buildMoreAction(
-                          context,
-                          'Help',
-                          Icons.help_outline,
-                          Colors.blueGrey,
-                          () => _showComingSoon(context, 'Help'),
-                        ),
-                        _buildMoreAction(
-                          context,
                           'Logout',
                           Icons.logout_outlined,
                           Colors.red,
                           () => _showLogoutDialog(context),
                         ),
                       ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // ===== SYSTEM INFO CARD =====
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                        border: Border.all(
-                          color: AppConstants.primaryColor.withOpacity(0.1),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppConstants.primaryColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(
-                                  Icons.info_outline,
-                                  size: 18,
-                                  color: AppConstants.primaryColor,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'System Information',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppConstants.primaryColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          _buildInfoRow('App Version', AppConstants.appVersion),
-                          _buildInfoRow('Database', 'Firebase Firestore'),
-                          _buildInfoRow('Platform', 'Flutter'),
-                          _buildInfoRow('Status', '🟢 Online'),
-                          const SizedBox(height: 4),
-                          LinearProgressIndicator(
-                            value: 0.75,
-                            backgroundColor: Colors.grey[200],
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              AppConstants.primaryColor,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'System running at 75% capacity',
-                            style: TextStyle(
-                              fontSize: 9,
-                              color: Colors.grey[400],
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
 
                     const SizedBox(height: 20),
@@ -376,7 +251,8 @@ class MorePage extends StatelessWidget {
   }
 
   // ==================== SECTION HEADER ====================
-  Widget _buildSectionHeader(String title, IconData icon, {bool isLarge = false}) {
+  Widget _buildSectionHeader(String title, IconData icon,
+      {bool isLarge = false}) {
     return Row(
       children: [
         Container(
@@ -495,7 +371,7 @@ class MorePage extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: Colors.black87,
@@ -527,6 +403,33 @@ class MorePage extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => const NotificationsScreen(),
+      ),
+    );
+  }
+
+  void _navigateToDepartment(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ManageDepartmentsScreen(),
+      ),
+    );
+  }
+
+  void _navigateToCourses(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ManageCoursesScreen(),
+      ),
+    );
+  }
+
+  void _navigateToReports(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ViewAllReportsScreen(),
       ),
     );
   }

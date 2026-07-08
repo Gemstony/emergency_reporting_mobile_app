@@ -83,11 +83,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         preferredSize: const Size.fromHeight(140),
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               colors: [
-                const Color(0xFF5FA4ED),
-                const Color(0xFF3A7CBD),
-                const Color(0xFF2C5F8A),
+                 Color(0xFF5FA4ED),
+                 Color(0xFF3A7CBD),
+                 Color(0xFF2C5F8A),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,

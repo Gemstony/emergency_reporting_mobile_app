@@ -413,16 +413,18 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                                   ? Colors.grey[500]
                                   : Colors.grey[400]),
                           const SizedBox(width: 3),
-                          Text(
-                            dept.description,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: dept.isActive
-                                  ? Colors.grey[500]
-                                  : Colors.grey[400],
+                          Expanded(
+                            child: Text(
+                              dept.description,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: dept.isActive
+                                    ? Colors.grey[500]
+                                    : Colors.grey[400],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -435,13 +437,19 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                                   ? Colors.grey[500]
                                   : Colors.grey[400]),
                           const SizedBox(width: 3),
-                          Text(
-                            dept.phone.isEmpty ? 'No phone number' : dept.phone,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: dept.isActive
-                                  ? Colors.grey[500]
-                                  : Colors.grey[400],
+                          Expanded(
+                            child: Text(
+                              dept.phone.isEmpty
+                                  ? 'No phone number'
+                                  : dept.phone,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: dept.isActive
+                                    ? Colors.grey[500]
+                                    : Colors.grey[400],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -958,7 +966,13 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Text(cat, style: const TextStyle(fontSize: 12)),
+                              Flexible(
+                                child: Text(
+                                  cat,
+                                  style: const TextStyle(fontSize: 12),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ],
                           ),
                         );
@@ -1103,7 +1117,13 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Text(cat, style: const TextStyle(fontSize: 12)),
+                              Flexible(
+                                child: Text(
+                                  cat,
+                                  style: const TextStyle(fontSize: 12),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ],
                           ),
                         );

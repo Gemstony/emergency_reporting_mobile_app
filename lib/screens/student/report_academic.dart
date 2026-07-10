@@ -464,10 +464,10 @@ class _ReportAcademicScreenState extends State<ReportAcademicScreen> {
                   // 👇 NEW: OR divider + Call button
                   // ================================
                   const SizedBox(height: 12),
-                  Row(
+                  const Row(
                     children: [
-                      const Expanded(child: Divider(thickness: 1)),
-                      const Padding(
+                       Expanded(child: Divider(thickness: 1)),
+                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
                           'OR',

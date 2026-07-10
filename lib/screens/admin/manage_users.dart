@@ -7,9 +7,7 @@ import '../../constants.dart';
 import '../../models.dart';
 import '../../utils.dart';
 
-// If AdminProvider lacks getNextSequence, provide a small extension
-// fallback that derives the next sequence from current lists.
-// This keeps this screen functional without modifying provider.
+// Extension fallback for getNextSequence (if missing in provider)
 extension _AdminProviderSequenceExt on AdminProvider {
   Future<int> getNextSequence(String role) async {
     switch (role) {
@@ -105,7 +103,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(110),
+        preferredSize: const Size.fromHeight(180),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -129,7 +127,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ===== HEADER ROW =====
+                // Header
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -146,11 +144,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(
-                          Icons.refresh,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                        icon: const Icon(Icons.refresh,
+                            color: Colors.white, size: 20),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         onPressed: () async {
@@ -170,12 +165,12 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                     ],
                   ),
                 ),
-                // ===== SEARCH BAR =====
+                // Search bar
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                   child: Container(
-                    height: 20,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.95),
                       borderRadius: BorderRadius.circular(8),
@@ -190,11 +185,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                     child: Row(
                       children: [
                         const SizedBox(width: 8),
-                        Icon(
-                          Icons.search,
-                          color: Colors.grey[400],
-                          size: 14,
-                        ),
+                        Icon(Icons.search, color: Colors.grey[400], size: 14),
                         const SizedBox(width: 6),
                         Expanded(
                           child: TextField(
@@ -203,37 +194,37 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                             decoration: InputDecoration(
                               hintText: 'Search users...',
                               hintStyle: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey[400],
-                              ),
+                                  fontSize: 11, color: Colors.grey[400]),
                               border: InputBorder.none,
                               contentPadding:
-                                  const EdgeInsets.symmetric(vertical: 2),
+                                  const EdgeInsets.symmetric(vertical: 6),
                               isDense: true,
                             ),
                           ),
                         ),
                         if (_searchQuery.isNotEmpty)
                           IconButton(
-                            icon: Icon(
-                              Icons.clear,
-                              color: Colors.grey[400],
-                              size: 14,
-                            ),
+                            icon: Icon(Icons.clear,
+                                color: Colors.grey[400], size: 14),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
-                            onPressed: () {
-                              _searchController.clear();
-                            },
+                            onPressed: () => _searchController.clear(),
                           ),
                         const SizedBox(width: 6),
                       ],
                     ),
                   ),
                 ),
-                // ===== TAB BAR =====
+                // TabBar
                 TabBar(
                   controller: _tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  labelPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  indicatorPadding: const EdgeInsets.symmetric(horizontal: 4),
                   tabs: const [
                     Tab(text: 'Students'),
                     Tab(text: 'Staff'),
@@ -242,10 +233,17 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.white70,
                   indicatorColor: Colors.white,
-                  labelStyle: const TextStyle(fontSize: 13),
-                  unselectedLabelStyle: const TextStyle(fontSize: 13),
-                  labelPadding: const EdgeInsets.symmetric(horizontal: 8),
-                  indicatorSize: TabBarIndicatorSize.label,
+                  dividerColor: Colors.white24,
+                  indicator: BoxDecoration(
+                    color: Colors.white.withOpacity(0.16),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  labelStyle: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  unselectedLabelStyle: const TextStyle(fontSize: 12),
+                  indicatorSize: TabBarIndicatorSize.tab,
                 ),
               ],
             ),
@@ -352,14 +350,12 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
     }
   }
 
-  // ==================== USER CARD ====================
+  // ==================== USER CARD (fixed) ====================
   Widget _buildUserCard(UserModel user, String role) {
-    // Extract code from regNo
     String regNoParts = user.regNo;
     List<String> parts = regNoParts.split('/');
     String code = parts.length > 1 ? parts[1] : '';
 
-    // Check if this is the first admin (cannot be deleted)
     final bool isFirstAdmin = role == 'admin' && _currentAdminId == user.id;
 
     return Container(
@@ -379,160 +375,166 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
             ? null
             : Border.all(color: Colors.red.withOpacity(0.3)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: user.isActive
-                  ? AppConstants.primaryColor.withOpacity(0.1)
-                  : Colors.grey.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Text(
-                user.firstName[0].toUpperCase(),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+          // Top row: avatar + name + tags
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Avatar
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
                   color: user.isActive
-                      ? AppConstants.primaryColor
-                      : Colors.grey[600],
+                      ? AppConstants.primaryColor.withOpacity(0.1)
+                      : Colors.grey.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Text(
+                    user.firstName[0].toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: user.isActive
+                          ? AppConstants.primaryColor
+                          : Colors.grey[600],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user.fullName,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: user.isActive ? Colors.black87 : Colors.grey[600],
-                  ),
-                ),
-                Row(
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.badge,
-                      size: 10,
-                      color:
-                          user.isActive ? Colors.grey[500] : Colors.grey[400],
-                    ),
-                    const SizedBox(width: 3),
                     Text(
-                      user.regNo,
+                      user.fullName,
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                         color:
-                            user.isActive ? Colors.grey[500] : Colors.grey[400],
+                            user.isActive ? Colors.black87 : Colors.grey[600],
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 5, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: AppConstants.primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        code,
-                        style: TextStyle(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w600,
-                          color: AppConstants.primaryColor,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 5, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        user.role.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                    if (isFirstAdmin)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text(
-                          'PRIMARY',
-                          style: TextStyle(
-                            fontSize: 7,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.amber,
+                    // Tags with Wrap to prevent overflow
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 2,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            user.regNo,
+                            style:
+                                TextStyle(fontSize: 9, color: Colors.grey[600]),
                           ),
                         ),
-                      ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppConstants.primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            code,
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w600,
+                              color: AppConstants.primaryColor,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            user.role.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                        if (isFirstAdmin)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'PRIMARY',
+                              style: TextStyle(
+                                fontSize: 7,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber,
+                              ),
+                            ),
+                          ),
+                        if (!user.isActive)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'INACTIVE',
+                              style: TextStyle(
+                                fontSize: 7,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
-                if (!user.isActive)
-                  Container(
-                    margin: const EdgeInsets.only(top: 2),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'INACTIVE',
-                      style: TextStyle(
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+              ),
+            ],
           ),
+          // Action buttons row (horizontal)
+          const SizedBox(height: 8),
           Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              // ===== RESET PASSWORD BUTTON =====
+              // Reset password
               IconButton(
-                icon: Icon(
-                  Icons.lock_reset,
-                  size: 16,
-                  color: Colors.orange,
-                ),
+                icon: Icon(Icons.lock_reset, size: 16, color: Colors.orange),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 onPressed: () => _resetPassword(user),
+                visualDensity: VisualDensity.compact,
               ),
-              const SizedBox(width: 2),
+              const SizedBox(width: 4),
+              // Edit
               IconButton(
-                icon: Icon(
-                  Icons.edit,
-                  size: 16,
-                  color: AppConstants.primaryColor,
-                ),
+                icon: Icon(Icons.edit,
+                    size: 16, color: AppConstants.primaryColor),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 onPressed: () => _showEditUserDialog(user),
+                visualDensity: VisualDensity.compact,
               ),
-              const SizedBox(width: 2),
+              const SizedBox(width: 4),
+              // Toggle status
               IconButton(
                 icon: Icon(
                   user.isActive ? Icons.block : Icons.check_circle,
@@ -542,9 +544,10 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 onPressed: () => _toggleUserStatus(user),
+                visualDensity: VisualDensity.compact,
               ),
-              const SizedBox(width: 2),
-              // ===== DELETE BUTTON (disabled for first admin) =====
+              const SizedBox(width: 4),
+              // Delete (disabled for first admin)
               IconButton(
                 icon: Icon(
                   Icons.delete,
@@ -554,6 +557,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 onPressed: isFirstAdmin ? null : () => _confirmDeleteUser(user),
+                visualDensity: VisualDensity.compact,
               ),
             ],
           ),
@@ -564,10 +568,8 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
 
   // ==================== RESET PASSWORD ====================
   Future<void> _resetPassword(UserModel user) async {
-    // Generate password: lastname@2026 (fixed year)
     final String password = '${user.lastName.toLowerCase()}@2026';
 
-    // Show confirmation dialog
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -653,7 +655,6 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
 
     if (confirm != true || !mounted) return;
 
-    // Call the provider to reset password
     final provider = Provider.of<AdminProvider>(context, listen: false);
     bool success = await provider.updateUser(user.id, {'password': password});
 
@@ -746,7 +747,6 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
     bool success = await provider.toggleUserStatus(user.id, !user.isActive);
     if (!mounted) return;
     if (success) {
-      // Refresh data immediately
       await _loadAllData(provider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -774,17 +774,12 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
               child: const Text('Cancel', style: TextStyle(fontSize: 12))),
           ElevatedButton(
             onPressed: () async {
-              // Close dialog immediately
               Navigator.pop(context);
-
               final provider =
                   Provider.of<AdminProvider>(context, listen: false);
               bool success = await provider.deleteUser(user.id);
-
               if (!mounted) return;
-
               if (success) {
-                // Refresh data immediately to remove user from list
                 await _loadAllData(provider);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -850,6 +845,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                       keyboardType: TextInputType.phone),
                   DropdownButtonFormField<String>(
                     value: selectedDepartmentId,
+                    isExpanded: true,
                     style: const TextStyle(fontSize: 12),
                     decoration: const InputDecoration(
                       labelText: 'Department *',
@@ -861,8 +857,11 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                     items: departments.map((d) {
                       return DropdownMenuItem(
                         value: d.id,
-                        child:
-                            Text(d.name, style: const TextStyle(fontSize: 12)),
+                        child: Text(
+                          d.name,
+                          style: const TextStyle(fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -875,6 +874,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     value: selectedCourseId,
+                    isExpanded: true,
                     style: const TextStyle(fontSize: 12),
                     decoration: const InputDecoration(
                       labelText: 'Course *',
@@ -886,8 +886,11 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                     items: courses.map((c) {
                       return DropdownMenuItem(
                         value: c.id,
-                        child:
-                            Text(c.name, style: const TextStyle(fontSize: 12)),
+                        child: Text(
+                          c.name,
+                          style: const TextStyle(fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       );
                     }).toList(),
                     onChanged: (value) =>
@@ -940,7 +943,6 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                   final course = provider.allCourses
                       .firstWhere((c) => c.id == selectedCourseId);
 
-                  // Get the next sequence number for student
                   final nextSeq = await provider.getNextSequence('student');
 
                   final student = StudentData(
@@ -954,16 +956,13 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                     courseCode: course.code,
                     year: int.parse(selectedYear),
                   );
-                  // Inside _showRegisterStudentDialog, after building the student object:
                   final authProvider =
                       Provider.of<AuthProvider>(context, listen: false);
                   final adminId = authProvider.currentUser?.id;
-
                   String? regNo =
                       await provider.registerStudent(student, adminId: adminId);
                   if (!mounted) return;
                   if (regNo != null) {
-                    // Refresh data to show new student
                     await _loadAllData(provider);
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1021,6 +1020,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                       keyboardType: TextInputType.phone),
                   DropdownButtonFormField<String>(
                     value: selectedDepartmentId,
+                    isExpanded: true,
                     style: const TextStyle(fontSize: 12),
                     decoration: const InputDecoration(
                       labelText: 'Department *',
@@ -1032,8 +1032,11 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                     items: departments.map((d) {
                       return DropdownMenuItem(
                         value: d.id,
-                        child:
-                            Text(d.name, style: const TextStyle(fontSize: 12)),
+                        child: Text(
+                          d.name,
+                          style: const TextStyle(fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       );
                     }).toList(),
                     onChanged: (value) =>
@@ -1102,7 +1105,6 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                       await provider.registerStaff(staff, adminId: adminId);
                   if (!mounted) return;
                   if (regNo != null) {
-                    // Refresh data to show new staff
                     await _loadAllData(provider);
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1135,11 +1137,10 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
 
     showDialog(
       context: context,
-      barrierDismissible:
-          false, // 👈 set false so user can't dismiss while loading
+      barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
-          bool _isRegistering = false; // 👈 defined inside builder
+          bool _isRegistering = false;
 
           return AlertDialog(
             shape:
@@ -1172,7 +1173,6 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                 onPressed: _isRegistering
                     ? null
                     : () async {
-                        // Validate fields
                         if (firstNameCtrl.text.isEmpty ||
                             lastNameCtrl.text.isEmpty ||
                             emailCtrl.text.isEmpty ||
@@ -1191,13 +1191,9 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                             Provider.of<AdminProvider>(context, listen: false);
                         final authProvider =
                             Provider.of<AuthProvider>(context, listen: false);
-                        final adminId =
-                            authProvider.currentUser?.id; // current admin ID
+                        final adminId = authProvider.currentUser?.id;
 
-                        // Get next sequence number
                         final nextSeq = await provider.getNextSequence('admin');
-
-                        // Generate regNo
                         final generatedRegNo =
                             'NIT/ADMIN/${DateTime.now().year}/${nextSeq.toString().padLeft(4, '0')}';
 
@@ -1215,7 +1211,7 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
                             'regNo': generatedRegNo,
                             'sequence': nextSeq,
                           },
-                          adminId: adminId, // 👈 pass adminId for notification
+                          adminId: adminId,
                         );
 
                         setState(() => _isRegistering = false);

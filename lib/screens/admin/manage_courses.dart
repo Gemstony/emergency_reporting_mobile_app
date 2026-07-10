@@ -17,7 +17,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
-  
+
   String? _selectedDepartmentId;
   bool _isAdding = false;
   String? _editingId;
@@ -47,12 +47,12 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
   @override
   Widget build(BuildContext context) {
     final adminProvider = Provider.of<AdminProvider>(context);
-    
+
     // Filter courses based on search query
     final filteredCourses = adminProvider.allCourses.where((course) {
       if (_searchQuery.isEmpty) return true;
       return course.name.toLowerCase().contains(_searchQuery) ||
-             course.code.toLowerCase().contains(_searchQuery);
+          course.code.toLowerCase().contains(_searchQuery);
     }).toList();
 
     return Scaffold(
@@ -84,7 +84,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
               children: [
                 // ===== HEADER ROW =====
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: Row(
                     children: [
                       const Text(
@@ -99,7 +100,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                       const Spacer(),
                       // Count badge
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 3),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(16),
@@ -124,7 +126,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         onPressed: () async {
-                          final provider = Provider.of<AdminProvider>(context, listen: false);
+                          final provider = Provider.of<AdminProvider>(context,
+                              listen: false);
                           await provider.loadDepartments();
                           await provider.loadAllCourses();
                           if (mounted) {
@@ -142,7 +145,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                 ),
                 // ===== SEARCH BAR =====
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                   child: Container(
                     height: 20,
                     decoration: BoxDecoration(
@@ -176,7 +180,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                                 color: Colors.grey[400],
                               ),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 2),
+                              contentPadding:
+                                  const EdgeInsets.symmetric(vertical: 2),
                               isDense: true,
                             ),
                           ),
@@ -337,19 +342,27 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                     Icon(
                       Icons.business_outlined,
                       size: 10,
-                      color: course.isActive ? Colors.grey[500] : Colors.grey[400],
+                      color:
+                          course.isActive ? Colors.grey[500] : Colors.grey[400],
                     ),
                     const SizedBox(width: 3),
-                    Text(
-                      department.name,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: course.isActive ? Colors.grey[500] : Colors.grey[400],
+                    Expanded(
+                      child: Text(
+                        department.name,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: course.isActive
+                              ? Colors.grey[500]
+                              : Colors.grey[400],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 1),
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(6),
@@ -368,7 +381,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                 if (!course.isActive)
                   Container(
                     margin: const EdgeInsets.only(top: 2),
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                     decoration: BoxDecoration(
                       color: Colors.red.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -389,7 +403,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.edit,
                   size: 16,
                   color: AppConstants.primaryColor,
@@ -453,7 +467,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                 children: [
                   DropdownButtonFormField<String>(
                     value: _selectedDepartmentId,
-                    style: const TextStyle(fontSize: 12),
+                    isExpanded: true,
+                    style: const TextStyle(fontSize: 12, color: Colors.black87),
                     decoration: const InputDecoration(
                       labelText: 'Select Department *',
                       labelStyle: TextStyle(fontSize: 12),
@@ -466,7 +481,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                         value: dept.id,
                         child: Text(
                           dept.name,
-                          style: const TextStyle(fontSize: 12),
+                          style: const TextStyle(fontSize: 12, color: Colors.black87),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       );
                     }).toList(),
@@ -479,7 +495,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                   const SizedBox(height: 10),
                   TextField(
                     controller: _codeController,
-                    style: const TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12, color: Colors.black87),
                     decoration: const InputDecoration(
                       labelText: 'Course Code *',
                       labelStyle: TextStyle(fontSize: 12),
@@ -493,7 +509,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                   const SizedBox(height: 10),
                   TextField(
                     controller: _nameController,
-                    style: const TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12, color: Colors.black87),
                     decoration: const InputDecoration(
                       labelText: 'Course Name *',
                       labelStyle: TextStyle(fontSize: 12),
@@ -507,7 +523,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                   const SizedBox(height: 10),
                   TextField(
                     controller: _durationController,
-                    style: const TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12, color: Colors.black87),
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'Duration (Years) *',
@@ -577,6 +593,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                 children: [
                   DropdownButtonFormField<String>(
                     value: _selectedDepartmentId,
+                    isExpanded: true,
                     style: const TextStyle(fontSize: 12),
                     decoration: const InputDecoration(
                       labelText: 'Department *',
@@ -591,6 +608,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                         child: Text(
                           dept.name,
                           style: const TextStyle(fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       );
                     }).toList(),
@@ -676,7 +694,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
         await adminProvider.toggleCourseStatus(course.id, !course.isActive);
 
     if (!mounted) return;
-    
+
     if (success) {
       // Refresh data
       await adminProvider.loadAllCourses();
@@ -715,7 +733,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
               bool success = await adminProvider.deleteCourse(course.id);
 
               if (!mounted) return;
-              
+
               if (success) {
                 // Refresh data
                 await adminProvider.loadAllCourses();
@@ -777,7 +795,6 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
     });
 
     if (success) {
-      // Refresh data
       await adminProvider.loadAllCourses();
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(

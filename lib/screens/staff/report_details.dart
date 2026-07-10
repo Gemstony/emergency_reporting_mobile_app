@@ -570,7 +570,7 @@ class _ReportDetailsScreenState extends State<ReportDetailsScreen> {
                   // Status dropdown
                   DropdownButtonFormField<String>(
                     value: _selectedStatus,
-                    style: const TextStyle(fontSize: 13),
+                    style: const TextStyle(fontSize: 13, color: Colors.black87),
                     decoration: InputDecoration(
                       labelText: 'Update Status',
                       labelStyle: const TextStyle(fontSize: 12),

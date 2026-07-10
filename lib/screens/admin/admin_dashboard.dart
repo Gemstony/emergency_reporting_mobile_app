@@ -836,7 +836,7 @@ class _AdminHomeScreen extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
+                  gradient: const LinearGradient(
                     colors: [
                       AppConstants.primaryColor,
                       AppConstants.primaryLight,
@@ -929,7 +929,7 @@ class _AdminHomeScreen extends StatelessWidget {
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 4,
+              crossAxisCount: 3, 
               childAspectRatio: 1.1,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
@@ -937,7 +937,7 @@ class _AdminHomeScreen extends StatelessWidget {
                 _buildQuickAction(
                   context,
                   'Departments',
-                  Icons.business_outlined,
+                  Icons.business_outlined, 
                   _navigateToTab,
                   const Color(0xFF5FA4ED),
                   1,

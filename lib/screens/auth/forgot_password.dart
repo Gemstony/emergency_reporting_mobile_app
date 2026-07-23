@@ -407,7 +407,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                       // Footer
                       Text(
-                         'Scar Tech Team',
+                         'NIT - National Institute Of Transport',
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.white.withOpacity(0.6),

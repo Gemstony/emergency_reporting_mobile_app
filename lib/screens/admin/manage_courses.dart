@@ -399,40 +399,59 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
               ],
             ),
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.edit,
-                  size: 16,
-                  color: AppConstants.primaryColor,
+          // Action menu
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20, color: Colors.grey),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onSelected: (value) {
+              switch (value) {
+                case 'edit':
+                  _showEditCourseDialog(course);
+                  break;
+                case 'toggle':
+                  _toggleCourseStatus(course);
+                  break;
+                case 'delete':
+                  _confirmDeleteCourse(course);
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit,
+                        size: 18, color: AppConstants.primaryColor),
+                    SizedBox(width: 12),
+                    Text('Edit'),
+                  ],
                 ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: () => _showEditCourseDialog(course),
               ),
-              const SizedBox(width: 2),
-              IconButton(
-                icon: Icon(
-                  course.isActive ? Icons.block : Icons.check_circle,
-                  size: 16,
-                  color: course.isActive ? Colors.orange : Colors.green,
+              PopupMenuItem(
+                value: 'toggle',
+                child: Row(
+                  children: [
+                    Icon(
+                      course.isActive ? Icons.block : Icons.check_circle,
+                      size: 18,
+                      color: course.isActive ? Colors.orange : Colors.green,
+                    ),
+                    SizedBox(width: 12),
+                    Text(course.isActive ? 'Deactivate' : 'Activate'),
+                  ],
                 ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: () => _toggleCourseStatus(course),
               ),
-              const SizedBox(width: 2),
-              IconButton(
-                icon: const Icon(
-                  Icons.delete,
-                  size: 16,
-                  color: Colors.red,
+              PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, size: 18, color: Colors.red),
+                    SizedBox(width: 12),
+                    Text('Delete'),
+                  ],
                 ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: () => _confirmDeleteCourse(course),
               ),
             ],
           ),
@@ -481,7 +500,8 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                         value: dept.id,
                         child: Text(
                           dept.name,
-                          style: const TextStyle(fontSize: 12, color: Colors.black87),
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.black87),
                           overflow: TextOverflow.ellipsis,
                         ),
                       );

@@ -319,7 +319,7 @@ class _SplashScreenState extends State<SplashScreen>
                       FadeTransition(
                         opacity: _fadeAnimation,
                         child: Text(
-                          'Scar Tech Team',
+                          'NIT - National Institute Of Transport',
                           style: TextStyle(
                             fontSize: 10,
                             color: Colors.white.withOpacity(0.6),

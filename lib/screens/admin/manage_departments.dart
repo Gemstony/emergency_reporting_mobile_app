@@ -527,35 +527,60 @@ class _ManageDepartmentsScreenState extends State<ManageDepartmentsScreen> {
                     ),
                   ),
                 const SizedBox(width: 4),
-                // Action buttons
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit,
-                          size: 16, color: AppConstants.primaryColor),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () => _showEditDepartmentDialog(dept),
-                    ),
-                    const SizedBox(width: 2),
-                    IconButton(
-                      icon: Icon(
-                        dept.isActive ? Icons.block : Icons.check_circle,
-                        size: 16,
-                        color: dept.isActive ? Colors.orange : Colors.green,
+                // Action menu
+                PopupMenuButton<String>(
+                  icon:
+                      const Icon(Icons.more_vert, size: 20, color: Colors.grey),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'edit':
+                        _showEditDepartmentDialog(dept);
+                        break;
+                      case 'toggle':
+                        _toggleDepartmentStatus(dept);
+                        break;
+                      case 'delete':
+                        _confirmDeleteDepartment(dept);
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit,
+                              size: 18, color: AppConstants.primaryColor),
+                          SizedBox(width: 12),
+                          Text('Edit'),
+                        ],
                       ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () => _toggleDepartmentStatus(dept),
                     ),
-                    const SizedBox(width: 2),
-                    IconButton(
-                      icon:
-                          const Icon(Icons.delete, size: 16, color: Colors.red),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () => _confirmDeleteDepartment(dept),
+                    PopupMenuItem(
+                      value: 'toggle',
+                      child: Row(
+                        children: [
+                          Icon(
+                            dept.isActive ? Icons.block : Icons.check_circle,
+                            size: 18,
+                            color: dept.isActive ? Colors.orange : Colors.green,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(dept.isActive ? 'Deactivate' : 'Activate'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, size: 18, color: Colors.red),
+                          SizedBox(width: 12),
+                          Text('Delete'),
+                        ],
+                      ),
                     ),
                   ],
                 ),

@@ -510,54 +510,89 @@ class _ManageUsersScreenState extends State<ManageUsersScreen>
               ),
             ],
           ),
-          // Action buttons row (horizontal)
+          // Action menu
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              // Reset password
-              IconButton(
-                icon: Icon(Icons.lock_reset, size: 16, color: Colors.orange),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, size: 20, color: Colors.grey),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
-                onPressed: () => _resetPassword(user),
-                visualDensity: VisualDensity.compact,
-              ),
-              const SizedBox(width: 4),
-              // Edit
-              IconButton(
-                icon: Icon(Icons.edit,
-                    size: 16, color: AppConstants.primaryColor),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: () => _showEditUserDialog(user),
-                visualDensity: VisualDensity.compact,
-              ),
-              const SizedBox(width: 4),
-              // Toggle status
-              IconButton(
-                icon: Icon(
-                  user.isActive ? Icons.block : Icons.check_circle,
-                  size: 16,
-                  color: user.isActive ? Colors.orange : Colors.green,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: () => _toggleUserStatus(user),
-                visualDensity: VisualDensity.compact,
-              ),
-              const SizedBox(width: 4),
-              // Delete (disabled for first admin)
-              IconButton(
-                icon: Icon(
-                  Icons.delete,
-                  size: 16,
-                  color: isFirstAdmin ? Colors.grey[400] : Colors.red,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: isFirstAdmin ? null : () => _confirmDeleteUser(user),
-                visualDensity: VisualDensity.compact,
+                onSelected: (value) {
+                  switch (value) {
+                    case 'reset':
+                      _resetPassword(user);
+                      break;
+                    case 'edit':
+                      _showEditUserDialog(user);
+                      break;
+                    case 'toggle':
+                      _toggleUserStatus(user);
+                      break;
+                    case 'delete':
+                      if (!isFirstAdmin) {
+                        _confirmDeleteUser(user);
+                      }
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'reset',
+                    child: Row(
+                      children: [
+                        Icon(Icons.lock_reset, size: 18, color: Colors.orange),
+                        SizedBox(width: 12),
+                        Text('Reset Password'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit,
+                            size: 18, color: AppConstants.primaryColor),
+                        SizedBox(width: 12),
+                        Text('Edit'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'toggle',
+                    child: Row(
+                      children: [
+                        Icon(
+                          user.isActive ? Icons.block : Icons.check_circle,
+                          size: 18,
+                          color: user.isActive ? Colors.orange : Colors.green,
+                        ),
+                        SizedBox(width: 12),
+                        Text(user.isActive ? 'Deactivate' : 'Activate'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    enabled: !isFirstAdmin,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.delete,
+                          size: 18,
+                          color: isFirstAdmin ? Colors.grey : Colors.red,
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          isFirstAdmin
+                              ? 'Cannot Delete Primary Admin'
+                              : 'Delete',
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
